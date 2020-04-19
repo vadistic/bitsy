@@ -1,21 +1,25 @@
 import { plainToClass } from 'class-transformer';
-import { ObjectID } from 'mongodb';
+import { ApiProperty } from '@nestjs/swagger';
 
 export interface FormModelInput {
   namespace: string;
   form: any;
 }
 
-export class FormModel {
-  _id: ObjectID;
+export class Form {
+  @ApiProperty()
+  _id: string;
 
+  @ApiProperty()
   namespace: string;
 
+  @ApiProperty()
   createdAt: Date = new Date();
 
+  @ApiProperty()
   form: any;
 
   static create(input: FormModelInput) {
-    return plainToClass(FormModel, input);
+    return plainToClass(Form, input);
   }
 }

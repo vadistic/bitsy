@@ -1,71 +1,82 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  NotImplementedException,
+} from '@nestjs/common';
 import { FormService } from './form.service';
 import { NamespaceDto, UniqueDto } from './form.dto';
-import { ApiOkResponse, ApiBody } from '@nestjs/swagger';
+import { ApiOkResponse, ApiBody, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Form } from './form.model';
 
+@ApiTags('form')
 @Controller('/api/form')
 export class FormController {
   constructor(private readonly service: FormService) {}
 
-  @Get('/test')
-  @ApiOkResponse({
-    description: `healthcheck returns 'ok'`,
-  })
-  getTest() {
-    return 'ok';
-  }
-
   @Get('/all')
-  @ApiOkResponse({
+  @ApiOperation({
     description: `all data globally (please do not use too much)`,
+  })
+  @ApiOkResponse({
+    type: Form,
+    isArray: true,
   })
   getAll() {
     return this.service.getAll();
   }
 
   @Get('/last')
+  @ApiOperation({
+    description: `last item globally`,
+  })
   @ApiOkResponse({
-    description: `last data globally`,
+    type: Form,
   })
   getLast() {
     return this.service.getLast();
   }
 
-  @Get('/id/:id')
-  @ApiOkResponse({
-    description: `one specific result`,
-  })
-  getById(@Param() param: UniqueDto) {
-    return this.service.getbyId(param);
-  }
-
   @Get('/:namespace/all')
+  @ApiOperation({
+    description: `all items from namespace`,
+  })
   @ApiOkResponse({
-    description: `all data from selected namespace`,
+    type: Form,
+    isArray: true,
   })
   getNamespacedAll(@Param() param: NamespaceDto) {
     return this.service.getNamespacedAll(param);
   }
 
   @Get('/:namespace/last')
+  @ApiOperation({ description: `get last item in namespace` })
   @ApiOkResponse({
-    description: `last data from selected namespace`,
+    type: Form,
   })
   getNamespacedLast(@Param() param: NamespaceDto) {
     return this.service.getNamespacedLast(param);
   }
 
   @Post('/:namespace')
-  @ApiOkResponse({
-    description: `id of created form`,
-  })
+  @ApiOperation({ description: `create new item` })
   @ApiBody({
     required: true,
-    description: 'any data you want to store',
+    type: 'JSON',
+    description: 'any JSON data',
+  })
+  @ApiOkResponse({
+    type: UniqueDto,
   })
   postNamespaced(@Param() param: NamespaceDto, @Body() body: any) {
-    console.log('body', body);
+    return { id: this.service.createNamespaced(param, body) };
+  }
 
-    return this.service.createNamespaced(param, body);
+  @Post('/:namespace/reset')
+  @ApiOperation({ description: `reset data in namespace` })
+  resetNamespace() {
+    throw new NotImplementedException();
   }
 }

@@ -1,6 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
+import { ApiOkResponse, ApiProperty } from '@nestjs/swagger';
+
+export class Message {
+  @ApiProperty()
+  message: string;
+}
 
 @Controller()
 export class AppController {
@@ -10,8 +16,12 @@ export class AppController {
     private readonly dbService: DatabaseService,
   ) {}
 
-  @Get('/hello')
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('/api/hello')
+  @ApiOkResponse({
+    description: `says hello`,
+    type: Message,
+  })
+  getHello() {
+    return { message: this.appService.getHello() };
   }
 }

@@ -1,25 +1,24 @@
-import { Injectable, HttpCode, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { FormModel } from './form.model';
+import { Form } from './form.model';
 import { NamespaceDto, UniqueDto } from './form.dto';
-import { ObjectID } from 'mongodb';
 
 @Injectable()
 export class FormService {
   constructor(private readonly dbService: DatabaseService) {}
 
   collections = {
-    form: this.dbService.db.collection<FormModel>('Form'),
+    form: this.dbService.db.collection<Form>('Form'),
   };
 
-  async getAll(): Promise<FormModel[]> {
+  async getAll(): Promise<Form[]> {
     const cursor = this.collections.form.find();
     const all = await cursor.toArray();
 
     return all;
   }
 
-  async getLast(): Promise<FormModel | null> {
+  async getLast(): Promise<Form | null> {
     const res = await this.collections.form.findOne(
       {},
       { sort: { _id: -1 }, limit: 1 },
@@ -28,7 +27,7 @@ export class FormService {
     return res;
   }
 
-  async getbyId({ id }: UniqueDto): Promise<FormModel | null> {
+  async getbyId({ id }: UniqueDto): Promise<Form | null> {
     const res = await this.collections.form.findOne(
       { _id: { $eq: id } },
       { limit: 1 },
@@ -37,7 +36,7 @@ export class FormService {
     return res;
   }
 
-  async getNamespacedAll({ namespace }: NamespaceDto): Promise<FormModel[]> {
+  async getNamespacedAll({ namespace }: NamespaceDto): Promise<Form[]> {
     const cursor = this.collections.form.find({
       namespace: { $eq: namespace },
     });
@@ -45,9 +44,7 @@ export class FormService {
     return cursor.toArray();
   }
 
-  async getNamespacedLast({
-    namespace,
-  }: NamespaceDto): Promise<FormModel | null> {
+  async getNamespacedLast({ namespace }: NamespaceDto): Promise<Form | null> {
     const res = await this.collections.form.findOne(
       {
         namespace: { $eq: namespace },
@@ -61,8 +58,8 @@ export class FormService {
   async createNamespaced(
     { namespace }: NamespaceDto,
     data: any,
-  ): Promise<ObjectID> {
-    const doc = FormModel.create({ form: data, namespace });
+  ): Promise<string> {
+    const doc = Form.create({ form: data, namespace });
 
     const res = await this.collections.form.insertOne(doc);
 
