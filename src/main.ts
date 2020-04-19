@@ -7,6 +7,18 @@ import { promisify } from 'util';
 import { config } from 'dotenv';
 config();
 
+console.log(
+  'ENV VARIABLES',
+  '\nurl:',
+  process.env.MONGODB_URL,
+  '\ndbName:',
+  process.env.MONGODB_NAME,
+  '\nuser:',
+  process.env.MONGODB_USER,
+  '\npassword:',
+  process.env.MONGODB_PASS,
+);
+
 import { AppModule } from './app.module';
 
 const readFileP = promisify(readFile);

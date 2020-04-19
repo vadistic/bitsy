@@ -11,7 +11,7 @@ import { FormModule } from './form/form.module';
       dbName: process.env.MONGODB_NAME,
       auth: {
         user: process.env.MONGODB_USER,
-        password: process.env.MONGODB_PASSWORD,
+        password: process.env.MONGODB_PASS,
       },
     }),
     FormModule,
