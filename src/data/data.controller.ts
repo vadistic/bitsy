@@ -6,15 +6,15 @@ import {
   Body,
   NotImplementedException,
 } from '@nestjs/common';
-import { FormService } from './form.service';
-import { NamespaceDto, UniqueDto } from './form.dto';
+import { DataService } from './data.service';
+import { NamespaceDto, UniqueDto } from './data.dto';
 import { ApiOkResponse, ApiBody, ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Form } from './form.model';
+import { Form } from './data.model';
 
 @ApiTags('form')
 @Controller('/api/form')
 export class FormController {
-  constructor(private readonly service: FormService) {}
+  constructor(private readonly service: DataService) {}
 
   @Get('/all')
   @ApiOperation({

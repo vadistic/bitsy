@@ -1,10 +1,17 @@
 {
-  "name": "auto-form-server",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "rest-nosql-api",
+  "version": "0.1.0",
+  "description": "API for backendless prototyping",
+  "author": "Jakub Wadas<vadistic@gmail.com>",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "keywords": [
+    "rest",
+    "api",
+    "nosql",
+    "mongo",
+    "nestjs"
+  ],
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

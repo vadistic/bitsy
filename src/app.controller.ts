@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { DatabaseService } from './database/database.service';
+import { MongoService } from './mongo/mongo.service';
 import { ApiOkResponse, ApiProperty } from '@nestjs/swagger';
 
 export class Message {
@@ -13,7 +13,7 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
 
-    private readonly dbService: DatabaseService,
+    private readonly dbService: MongoService,
   ) {}
 
   @Get('/api/hello')

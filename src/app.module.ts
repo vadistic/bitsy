@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DatabaseModule } from './database/database.module';
-import { FormModule } from './form/form.module';
+import { FormModule } from './data/data.module';
+import { MongoModule } from './mongo/mongo.module';
 
 @Module({
   imports: [
-    DatabaseModule.registerAsync({
+    MongoModule.registerAsync({
       url: process.env.MONGODB_URL,
       dbName: process.env.MONGODB_NAME,
       auth: {

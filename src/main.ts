@@ -5,6 +5,7 @@ import { join } from 'path';
 import { promisify } from 'util';
 
 import { config } from 'dotenv';
+
 config();
 
 import { AppModule } from './app.module';
@@ -15,6 +16,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
 
+  const pkg = await import('../package.json');
+
   const descriptionMd = await readFileP(
     join(__dirname, '../README.md'),
     'utf-8',
@@ -24,11 +27,10 @@ async function bootstrap() {
   const decription = descriptionMd.substring(descriptionMd.indexOf('\n') + 1);
 
   const options = new DocumentBuilder()
-    .setTitle('Auto Form Server')
+    .setTitle(pkg.name)
     .setDescription(decription)
-    .setVersion('1.0')
-    .addTag('cool', 'api')
-    .setLicense('MIT', `https://en.wikipedia.org/wiki/MIT_License`)
+    .setVersion(pkg.version)
+    .addTag('data')
     .build();
 
   const document = SwaggerModule.createDocument(app, options);

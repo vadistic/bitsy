@@ -1,12 +1,12 @@
 import { DynamicModule } from '@nestjs/common';
 import { MongoClient } from 'mongodb';
-import { DatabaseService } from './database.service';
+import { MongoService } from './mongo.service';
 
 export const MONGO_CLIENT = 'MONGO_CLIENT';
 export const MONGO_DB = 'MONGO_DB';
 export const MONGO_OPTIONS = 'MONGO_OPTIONS';
 
-export interface DatabaseModuleOptions {
+export interface MongoModuleOptions {
   url: string;
   dbName: string;
   auth: {
@@ -15,12 +15,11 @@ export interface DatabaseModuleOptions {
   };
 }
 
-export class DatabaseModule {
+export class MongoModule {
   static async registerAsync(
-    options: DatabaseModuleOptions,
+    options: MongoModuleOptions,
   ): Promise<DynamicModule> {
     const client = await MongoClient.connect(options.url, {
-      // ssl: false,
       auth: options.auth,
       loggerLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
       useNewUrlParser: true,
@@ -30,10 +29,10 @@ export class DatabaseModule {
     const db = client.db(options.dbName);
 
     return {
-      module: DatabaseModule,
+      module: MongoModule,
       global: true,
       providers: [
-        DatabaseService,
+        MongoService,
         {
           provide: MONGO_CLIENT,
           useValue: client,
@@ -47,7 +46,7 @@ export class DatabaseModule {
           useValue: options,
         },
       ],
-      exports: [DatabaseService, MONGO_CLIENT, MONGO_DB, MONGO_OPTIONS],
+      exports: [MongoService, MONGO_CLIENT, MONGO_DB, MONGO_OPTIONS],
     };
   }
 }

@@ -1,5 +1,9 @@
-# auto-form-server
+# rest-nosql-api
 
-Rapid HTML Form prototyping tool
+API for backendless prototyping
 
-Jakub Wadas <vadistic@gmail.com>
+## Documentation
+
+[SWAGGER](http://auto-form-server.herokuapp.com/)
+
+Tiny rest api for persisting of arbitrary data.

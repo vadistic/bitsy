@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
-import { Form } from './form.model';
-import { NamespaceDto, UniqueDto } from './form.dto';
+import { Form } from './data.model';
+import { NamespaceDto, UniqueDto } from './data.dto';
+import { MongoService } from '../mongo/mongo.service';
 
 @Injectable()
-export class FormService {
-  constructor(private readonly dbService: DatabaseService) {}
+export class DataService {
+  constructor(private readonly dbService: MongoService) {}
 
   collections = {
     form: this.dbService.db.collection<Form>('Form'),

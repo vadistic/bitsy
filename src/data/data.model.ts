@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-export interface FormModelInput {
+export class FormCreateDto {
   namespace: string;
   form: any;
 }
@@ -19,7 +19,7 @@ export class Form {
   @ApiProperty()
   form: any;
 
-  static create(input: FormModelInput) {
+  static create(input: FormCreateDto) {
     return plainToClass(Form, input);
   }
 }
