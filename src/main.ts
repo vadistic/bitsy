@@ -7,18 +7,6 @@ import { promisify } from 'util';
 import { config } from 'dotenv';
 config();
 
-console.log(
-  'ENV VARIABLES',
-  '\nurl:',
-  process.env.MONGODB_URL,
-  '\ndbName:',
-  process.env.MONGODB_NAME,
-  '\nuser:',
-  process.env.MONGODB_USER,
-  '\npassword:',
-  process.env.MONGODB_PASS,
-);
-
 import { AppModule } from './app.module';
 
 const readFileP = promisify(readFile);
@@ -45,7 +33,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, options);
 
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('/', app, document);
 
   await app.listen(process.env.PORT || 3000);
 }
