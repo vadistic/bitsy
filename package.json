@@ -1,5 +1,5 @@
 {
-  "name": "simple-nosql-bucket",
+  "name": "bitsy-nosql-bucket",
   "version": "0.1.0",
   "description": "Simple data store API for backendless prototyping",
   "author": "Jakub Wadas<vadistic@gmail.com>",
@@ -28,7 +28,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prestart:prod": "yarn build",
     "postinstall": "yarn prestart:prod",
-    "deploy": "heroku git:remote -a auto-form-server"
+    "deploy": "heroku git:remote -a bitsy-nosql-bucket"
   },
   "dependencies": {
     "@nestjs/common": "^7.0.8",
