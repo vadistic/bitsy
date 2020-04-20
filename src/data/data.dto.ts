@@ -1,18 +1,83 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ObjectId } from 'mongodb';
 
-export class NamespaceDto {
+// virtual - not stored in db
+export class Bucket {
   @ApiProperty({
-    description: 'unique namespace (dynamically created)',
-    minLength: 3,
-    maxLength: 24,
-    example: 'example-namespace',
+    description: `create date`,
   })
-  namespace: string;
+  createdAt!: Date;
+
+  @ApiProperty({
+    description: `update date`,
+  })
+  updatedAt!: Date;
+
+  @ApiProperty({
+    description: `unique bucket identifier`,
+  })
+  identifier!: string;
+
+  @ApiProperty({
+    description: `all bucket items`,
+  })
+  items!: Item[];
 }
 
-export class UniqueDto {
+// doc stored in database
+export class Item {
   @ApiProperty({
-    description: 'objectId from mongo',
+    description: `internal mongo objectId`,
   })
-  id: string;
+  _id: string = new ObjectId().toHexString();
+
+  @ApiProperty({
+    description: `create date`,
+  })
+  createdAt: Date = new Date();
+
+  @ApiProperty({
+    description: `unique bucket identifier`,
+  })
+  identifier: string;
+
+  @ApiProperty({
+    description: `any arbitrary JSON data`,
+  })
+  value: any;
+
+  constructor(identifier: string, value: any) {
+    this.identifier = identifier;
+    this.value = value;
+  }
+
+  static create(input: IdentifierDTO & ValueDTO) {
+    return new Item(input.identifier, input.value);
+  }
 }
+
+export class UniqueDTO {
+  @ApiProperty({
+    description: `internal mongo objectId`,
+  })
+  _id!: string;
+}
+
+export class ValueDTO {
+  @ApiProperty({
+    description: `any arbitrary JSON data`,
+  })
+  value: any;
+}
+
+export class IdentifierDTO {
+  @ApiProperty({
+    description: `unique bucket identifier`,
+  })
+  identifier!: string;
+}
+
+export class BucketShallowDTO extends OmitType(Bucket, ['items']) {}
+
+// TODO: DTO follwing JSON API standard
+// https://jsonapi.org/

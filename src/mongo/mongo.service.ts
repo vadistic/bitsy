@@ -1,11 +1,20 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { MONGO_CLIENT, MONGO_DB } from './mongo.module';
-import { MongoClient, Db } from 'mongodb';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { MongoClient } from 'mongodb';
+import { LoggerService } from '../logger/logger.service';
+import { ConfigT, InjectConfig } from '../config';
+import { InjectMongo } from './mongo.provider';
 
 @Injectable()
-export class MongoService {
+export class MongoService implements OnModuleDestroy {
   constructor(
-    @Inject(MONGO_CLIENT) readonly client: MongoClient,
-    @Inject(MONGO_DB) readonly db: Db,
+    @InjectMongo() readonly client: MongoClient,
+    @InjectConfig() private readonly config: ConfigT,
+    private readonly logger: LoggerService,
   ) {}
+
+  db = this.client.db(this.config.MONGODB_NAME);
+
+  async onModuleDestroy() {
+    await this.client.close();
+  }
 }

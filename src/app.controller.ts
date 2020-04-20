@@ -1,27 +1,18 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MongoService } from './mongo/mongo.service';
-import { ApiOkResponse, ApiProperty } from '@nestjs/swagger';
+import { ApiOkResponse } from '@nestjs/swagger';
+import { Message, HelloDTO } from './app.dto';
 
-export class Message {
-  @ApiProperty()
-  message: string;
-}
-
-@Controller()
+@Controller('/api')
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
+  constructor(private readonly appService: AppService) {}
 
-    private readonly dbService: MongoService,
-  ) {}
-
-  @Get('/api/hello')
+  @Get('/hello')
   @ApiOkResponse({
     description: `says hello`,
     type: Message,
   })
-  getHello() {
-    return { message: this.appService.getHello() };
+  getHello(@Query() { name }: HelloDTO): Message {
+    return Message.create({ message: this.appService.getHello(name) });
   }
 }

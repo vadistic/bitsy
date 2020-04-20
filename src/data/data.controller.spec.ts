@@ -1,15 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FormController } from './data.controller';
+import { DataController } from './data.controller';
+import { DataService } from './data.service';
+import { MongoModule } from '../mongo/mongo.module';
+import { GlobalModule } from '../global.module';
 
-describe('Form Controller', () => {
-  let controller: FormController;
+describe('DataController', () => {
+  let controller: DataController;
+  let mod: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [FormController],
+    mod = await Test.createTestingModule({
+      imports: [MongoModule, GlobalModule],
+      controllers: [DataController],
+      providers: [DataService],
     }).compile();
 
-    controller = module.get<FormController>(FormController);
+    controller = mod.get<DataController>(DataController);
+  });
+
+  afterEach(async () => {
+    await mod.close();
   });
 
   it('should be defined', () => {

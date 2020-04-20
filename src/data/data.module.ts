@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { DataService } from './data.service';
-import { FormController } from './data.controller';
+import { DataController } from './data.controller';
 
 @Module({
   providers: [DataService],
-  controllers: [FormController],
+  controllers: [DataController],
 })
-export class FormModule {}
+export class DataModule {}

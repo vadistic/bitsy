@@ -3,29 +3,30 @@ import {
   Get,
   Param,
   Post,
-  Body,
   NotImplementedException,
+  Body,
+  NotFoundException,
+  Delete,
 } from '@nestjs/common';
 import { DataService } from './data.service';
-import { NamespaceDto, UniqueDto } from './data.dto';
-import { ApiOkResponse, ApiBody, ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Form } from './data.model';
+import { Item, IdentifierDTO, Bucket } from './data.dto';
+import { ApiOkResponse, ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 
-@ApiTags('form')
-@Controller('/api/form')
-export class FormController {
+@Controller('/api')
+@ApiTags('data')
+export class DataController {
   constructor(private readonly service: DataService) {}
 
   @Get('/all')
   @ApiOperation({
-    description: `all data globally (please do not use too much)`,
+    description: `list all items globally`,
   })
   @ApiOkResponse({
-    type: Form,
+    type: Item,
     isArray: true,
   })
-  getAll() {
-    return this.service.getAll();
+  async getAll(): Promise<Item[]> {
+    return this.service.globalFindManyItems();
   }
 
   @Get('/last')
@@ -33,50 +34,74 @@ export class FormController {
     description: `last item globally`,
   })
   @ApiOkResponse({
-    type: Form,
+    type: Item,
   })
-  getLast() {
-    return this.service.getLast();
+  async getLast(): Promise<Item> {
+    const item = await this.service.globalFindLastItem();
+
+    // theoretically possible :)
+    if (!item) {
+      throw new NotFoundException();
+    }
+
+    return item;
   }
 
-  @Get('/:namespace/all')
+  @Get('/buckets/:identifier/all')
   @ApiOperation({
-    description: `all items from namespace`,
+    description: `all bucket items`,
   })
   @ApiOkResponse({
-    type: Form,
+    type: Item,
     isArray: true,
   })
-  getNamespacedAll(@Param() param: NamespaceDto) {
-    return this.service.getNamespacedAll(param);
+  async getBucketAll(@Param() param: IdentifierDTO): Promise<Item[]> {
+    return this.service.findManyItems(param);
   }
 
-  @Get('/:namespace/last')
-  @ApiOperation({ description: `get last item in namespace` })
-  @ApiOkResponse({
-    type: Form,
+  @Get('/buckets/:identifier/last')
+  @ApiOperation({
+    description: `last item in bucket`,
   })
-  getNamespacedLast(@Param() param: NamespaceDto) {
-    return this.service.getNamespacedLast(param);
+  @ApiOkResponse({
+    type: Item,
+  })
+  async getBucketLast(@Param() param: IdentifierDTO): Promise<Item> {
+    const item = await this.service.findLastItem(param);
+
+    if (!item) {
+      throw new NotFoundException();
+    }
+
+    return item;
   }
 
-  @Post('/:namespace')
-  @ApiOperation({ description: `create new item` })
+  @Post('/buckets/:identifier')
+  @ApiOperation({
+    description: `add new item to bucket (and create bucket if not exists)`,
+  })
   @ApiBody({
     required: true,
-    type: 'JSON',
+    type: 'application/json',
     description: 'any JSON data',
   })
   @ApiOkResponse({
-    type: UniqueDto,
+    type: Bucket,
   })
-  postNamespaced(@Param() param: NamespaceDto, @Body() body: any) {
-    return { id: this.service.createNamespaced(param, body) };
+  async postNamespaced(
+    @Param() { identifier }: IdentifierDTO,
+    @Body() body: any,
+  ) {
+    return {
+      id: this.service.push({ identifier, value: body }),
+    };
   }
 
-  @Post('/:namespace/reset')
-  @ApiOperation({ description: `reset data in namespace` })
-  resetNamespace() {
+  @Delete('/buckets/:identifier')
+  @ApiOperation({
+    description: `delete bucker`,
+  })
+  async resetNamespace() {
     throw new NotImplementedException();
   }
 }
