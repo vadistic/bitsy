@@ -14,12 +14,23 @@
 
 ```
 
-curl -i
+# create bucket with first item
+$curl -X POST "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/new" \
+  -H "accept: application/json"  \
+  -H "Content-Type: application/json" \
+  -d "{\"hello\":\"bitsy\"}"
+
+# query bucket
+curl -i GET "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/mighty-moccasin-aphid-72"
+
+# query all items
+curl -i GET "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/mighty-moccasin-aphid-72/items"
+
 
 ```
 
 ## Documentation
 
-[Swagger docs](http://bitsy-nosql-bucket.herokuapp.com/)
+[Swagger docs](https://bitsy-nosql-bucket.herokuapp.com/)
 
 Tiny rest api for persisting of arbitrary data.
