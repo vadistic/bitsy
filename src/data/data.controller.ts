@@ -77,7 +77,6 @@ export class DataController {
   })
   @ApiBody({
     required: true,
-    type: 'object',
     description: 'any JSON data',
   })
   @ApiOkResponse({
@@ -95,7 +94,6 @@ export class DataController {
   })
   @ApiBody({
     required: true,
-    type: 'application/json',
     description: 'any JSON data',
   })
   @ApiOkResponse({

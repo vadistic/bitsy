@@ -1,6 +1,6 @@
 # bitsy-nosql-bucket
 
-> Bitsy data store API for backendless prototyping
+Bitsy data store API for backendless prototyping
 
 > bitsy
 > _in British English_
@@ -32,5 +32,3 @@ curl -i GET "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/mighty-moccasi
 ## Documentation
 
 [Swagger docs](https://bitsy-nosql-bucket.herokuapp.com/)
-
-Tiny rest api for persisting of arbitrary data.
