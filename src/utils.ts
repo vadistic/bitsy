@@ -2,7 +2,8 @@ import { plainToClass } from 'class-transformer';
 import { Type, InternalServerErrorException } from '@nestjs/common';
 
 export const serialise = <T>(ref: Type<T>, plain: Partial<T>) =>
-  plainToClass(ref, plain, { excludeExtraneousValues: true });
+  // ! it should use `excludeExtraneousValues: true` but for some reason it skips `value: any` field
+  plainToClass(ref, plain);
 
 export type Defined<T> = {
   [K in keyof T]: NonNullable<T[K]>;

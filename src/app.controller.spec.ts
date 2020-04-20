@@ -14,9 +14,23 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
+  describe('GET /hello', () => {
     it('should return "Hello World!"', () => {
       expect(appController.getHello({})).toEqual({ message: 'Hello World!' });
+    });
+
+    it('should return "Hello Jakub!"', () => {
+      expect(appController.getHello({ name: 'Jakub' })).toEqual({
+        message: 'Hello Jakub!',
+      });
+    });
+  });
+
+  describe('POST /message', () => {
+    it('should return message', () => {
+      expect(appController.postMessage({ message: 'abc' })).toEqual({
+        message: 'abc',
+      });
     });
   });
 });

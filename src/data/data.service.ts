@@ -1,5 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { UniqueDTO, IdentifierDTO, ValueDTO, Item } from './data.dto';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  UniqueDTO,
+  IdentifierDTO,
+  ValueDTO,
+  ItemDTO,
+  BucketDTO,
+  BucketShallowDTO,
+  ItemShallowDTO,
+  CountDTO,
+} from './data.dto';
 import { MongoService } from '../mongo/mongo.service';
 import {
   uniqueNamesGenerator,
@@ -7,6 +16,7 @@ import {
   colors,
   animals,
 } from 'unique-names-generator';
+import { StrictProjection } from '../types';
 
 export const ITEMS_COLLECTION = 'Items';
 
@@ -15,10 +25,10 @@ export class DataService {
   constructor(private readonly mongo: MongoService) {}
 
   collections = {
-    items: this.mongo.db.collection<Item>(ITEMS_COLLECTION),
+    items: this.mongo.db.collection<ItemDTO>(ITEMS_COLLECTION),
   };
 
-  async getUniqueIdentifier(): Promise<string> {
+  getFunnyIdentifier(): string {
     const separator = '-';
 
     const coolName = uniqueNamesGenerator({
@@ -29,57 +39,115 @@ export class DataService {
 
     const num = Math.floor(Math.random() * 100)
       .toString()
-      .padStart(2);
+      .padStart(2, '0');
 
-    const uniqueIdentifier = coolName + separator + num;
+    return coolName + separator + num;
+  }
 
-    // very improbable but...
-    const isInUse = await this.collections.items
+  async getUniqueIdentifier(): Promise<string> {
+    const uniqueIdentifier = this.getFunnyIdentifier();
+
+    const cursor = this.collections.items
       .find(
         {
           namespace: uniqueIdentifier,
         },
         { limit: 1 },
       )
-      .project(['identifier'] as (keyof Item)[])
-      .hasNext();
+      .project({ identifier: 1 } as StrictProjection<ItemDTO>);
 
-    if (isInUse) {
+    // very improbable but...
+    if (await cursor.hasNext()) {
       return this.getUniqueIdentifier();
     }
 
     return uniqueIdentifier;
   }
 
-  // async globalFindManyBuckets(): Promise<Bucket[]> {
-  //   const cursor = this.collections.items.find();
-  //   const all = await cursor.toArray();
-
-  //   return all;
-  // }
-
-  // async globalFindLastBucket(): Promise<Bucket | null> {
-  //   const res = await this.collections.items.findOne(
-  //     {},
-  //     { sort: { _id: -1 }, limit: 1 },
-  //   );
-
-  //   return res;
-  // }
-
-  async globalFindManyItems(): Promise<Item[]> {
-    const cursor = this.collections.items.find();
+  // TODO: limit to controller
+  async globalFindManyItems(): Promise<ItemShallowDTO[]> {
+    const cursor = this.collections.items.find(
+      {},
+      { limit: 100, sort: { _id: -1 }, projection: { value: 0 } },
+    );
 
     return cursor.toArray();
   }
 
-  async globalFindLastItem(): Promise<Item | null> {
-    const res = await this.collections.items.findOne({}, { sort: { _id: -1 } });
+  async globalFindLastItem(): Promise<ItemDTO | null> {
+    const cursor = this.collections.items.find(
+      {},
+      { sort: { _id: -1 }, limit: 1 },
+    );
 
-    return res;
+    return cursor.next();
   }
 
-  async findItemById({ _id: id }: UniqueDTO): Promise<Item | null> {
+  async globalFindManyBuckets(): Promise<BucketShallowDTO[]> {
+    const cursor = this.collections.items.aggregate<BucketShallowDTO>([
+      { $sort: { _id: -1 } },
+      {
+        $project: {
+          value: 0,
+        },
+      },
+      {
+        $group: {
+          _id: '$identifier',
+          createdAt: {
+            $last: '$createdAt',
+          },
+          updatedAt: {
+            $first: '$createdAt',
+          },
+          identifier: {
+            $first: '$identifier',
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+    ]);
+
+    return cursor.toArray();
+  }
+
+  async globalFindLastBucket(): Promise<BucketDTO | null> {
+    const cursor = this.collections.items.aggregate<BucketDTO>([
+      { $sort: { _id: -1 } },
+      { $limit: 1 },
+      {
+        $project: {
+          value: 0,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          createdAt: {
+            $last: '$createdAt',
+          },
+          updatedAt: {
+            $first: '$createdAt',
+          },
+          identifier: {
+            $first: '$identifier',
+          },
+          count: {
+            $sum: 1,
+          },
+          items: {
+            $push: '$$ROOT',
+          },
+        },
+      },
+    ]);
+
+    return cursor.next();
+  }
+
+  async findItemById({ _id: id }: UniqueDTO): Promise<ItemDTO | null> {
     const res = await this.collections.items.findOne(
       { _id: { $eq: id } },
       { limit: 1 },
@@ -88,17 +156,15 @@ export class DataService {
     return res;
   }
 
-  async findManyItems({ identifier }: IdentifierDTO): Promise<Item[]> {
-    const cursor = this.collections.items
-      .find({
-        identifier: { $eq: identifier },
-      })
-      .limit(1);
+  async findManyItems({ identifier }: IdentifierDTO): Promise<ItemDTO[]> {
+    const cursor = this.collections.items.find({
+      identifier: { $eq: identifier },
+    });
 
     return cursor.toArray();
   }
 
-  async findLastItem({ identifier }: IdentifierDTO): Promise<Item | null> {
+  async findLastItem({ identifier }: IdentifierDTO): Promise<ItemDTO | null> {
     const res = await this.collections.items.findOne(
       {
         identifier: { $eq: identifier },
@@ -109,18 +175,63 @@ export class DataService {
     return res;
   }
 
-  async push({
+  async findOneBucket({
+    identifier,
+  }: IdentifierDTO): Promise<BucketDTO | null> {
+    const cursor = this.collections.items.aggregate<BucketDTO>([
+      { $match: { identifier: { $eq: identifier } } },
+      { $sort: { _id: -1 } },
+      {
+        $project: {
+          value: 0,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          createdAt: {
+            $last: '$createdAt',
+          },
+          updatedAt: {
+            $first: '$createdAt',
+          },
+          identifier: {
+            $first: '$identifier',
+          },
+          count: {
+            $sum: 1,
+          },
+          items: {
+            $push: '$$ROOT',
+          },
+        },
+      },
+    ]);
+
+    const res = await cursor.next();
+
+    return res;
+  }
+
+  async pushToBucket({
     identifier: maybeIdentifier,
     value,
-  }: Partial<IdentifierDTO> & ValueDTO): Promise<Item> {
+  }: Partial<IdentifierDTO> & ValueDTO): Promise<ItemDTO> {
     const identifier = maybeIdentifier ?? (await this.getUniqueIdentifier());
-    const item = Item.create({ identifier, value });
+    const item = ItemDTO.create({ identifier, value });
 
     const res = await this.collections.items.insertOne(item);
 
-    res.result.ok;
+    if (!res.result.ok) {
+      throw new InternalServerErrorException(res.ops, 'cannot insert');
+    }
 
-    // https://stackoverflow.com/questions/40766654/node-js-mongodb-insert-one-and-return-the-newly-inserted-document
-    return res.ops[0];
+    return item;
+  }
+
+  async deleteBucket({ identifier }: IdentifierDTO): Promise<CountDTO> {
+    const res = await this.collections.items.deleteMany({ identifier });
+
+    return { count: res.deletedCount ?? 0 };
   }
 }

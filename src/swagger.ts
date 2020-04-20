@@ -14,7 +14,8 @@ export const useSwagger = async (route: string, app: INestApplication) => {
     .setTitle(pkg.name)
     .setDescription(description)
     .setVersion(pkg.version)
-    .addTag('data')
+    .addTag('buckets')
+    .addTag('global')
     .build();
 
   const document = SwaggerModule.createDocument(app, options);

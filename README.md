@@ -1,6 +1,12 @@
-# rest-nosql-api
+# simple-nosql-bucket
 
-API for backendless prototyping
+Simple data store API for backendless prototyping
+
+## Start
+
+```
+
+```
 
 ## Documentation
 
