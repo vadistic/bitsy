@@ -1,0 +1,5 @@
+{
+  "regions": ["bru"],
+
+  "routes": [{ "src": "/paste/.*", "dest": "index.html" }]
+}

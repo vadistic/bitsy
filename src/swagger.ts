@@ -8,7 +8,14 @@ export const useSwagger = async (route: string, app: INestApplication) => {
 
   const description = await readFile(join(__dirname, '../README.md'), 'utf-8')
     // remove first line with title
-    .then((file) => file.substring(file.indexOf('\n') + 1));
+    .then(
+      (file) =>
+        file.substring(file.indexOf('\n') + 1) +
+        `
+## Author
+Jakub Wadas <vadistic@gmail.com>
+`,
+    );
 
   const options = new DocumentBuilder()
     .setTitle(pkg.name)

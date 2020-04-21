@@ -11,11 +11,15 @@ import {
 import { DataService } from './data.service';
 import { ItemDTO, IdentifierDTO, BucketDTO, CountDTO } from './data.dto';
 import { ApiOkResponse, ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
+import { LoggerService } from '../logger/logger.service';
 
 @Controller('/api')
 @ApiTags('buckets')
 export class DataController {
-  constructor(private readonly service: DataService) {}
+  constructor(
+    private readonly service: DataService,
+    private readonly logger: LoggerService,
+  ) {}
 
   // ────────────────────────────────────────────────────────────────────────────────
 
@@ -66,6 +70,9 @@ export class DataController {
     isArray: true,
   })
   async getBucketItems(@Param() param: IdentifierDTO): Promise<ItemDTO[]> {
+    console.log('here');
+
+    this.logger.log('asdasd');
     return this.service.findManyItems(param);
   }
 
@@ -112,6 +119,9 @@ export class DataController {
   @ApiOperation({
     description: `overwrite bucket with new data (this delete previous items)`,
   })
+  @ApiOkResponse({
+    type: ItemDTO,
+  })
   async putBucket(
     @Param() param: IdentifierDTO,
     @Body() body: any,
@@ -125,6 +135,9 @@ export class DataController {
   @Delete('/buckets/:identifier')
   @ApiOperation({
     description: `delete bucket`,
+  })
+  @ApiOkResponse({
+    type: CountDTO,
   })
   async deleteBucket(@Param() param: IdentifierDTO): Promise<CountDTO> {
     return this.service.deleteBucket(param);

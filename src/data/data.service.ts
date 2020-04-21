@@ -157,9 +157,14 @@ export class DataService {
   }
 
   async findManyItems({ identifier }: IdentifierDTO): Promise<ItemDTO[]> {
-    const cursor = this.collections.items.find({
-      identifier: { $eq: identifier },
-    });
+    const cursor = this.collections.items.find(
+      {
+        identifier: { $eq: identifier },
+      },
+      { sort: { _id: -1 } },
+    );
+
+    console.log(await cursor.toArray());
 
     return cursor.toArray();
   }

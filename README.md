@@ -10,25 +10,20 @@ Bitsy data store API for backendless prototyping
 > informal
 > very small
 
-## Start
+## Idea
 
-```
+Simple endpoint for any arbitrary JSON
 
-# create bucket with first item
-$curl -X POST "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/new" \
-  -H "accept: application/json"  \
-  -H "Content-Type: application/json" \
-  -d "{\"hello\":\"bitsy\"}"
-
-# query bucket
-curl -i GET "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/mighty-moccasin-aphid-72"
-
-# query all items
-curl -i GET "https://bitsy-nosql-bucket.herokuapp.com/api/buckets/mighty-moccasin-aphid-72/items"
-
-
-```
+- create bucket by posting to it (or using `/api/buckets/new`)
+- add more data
+- read items
 
 ## Documentation
 
 [Swagger docs](https://bitsy-nosql-bucket.herokuapp.com/)
+
+## TODO
+
+- filter/pagination
+- readonly/ optional auth
+- webhooks?

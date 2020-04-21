@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
+    />
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css"
+    />
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.css"
+    />
+
+    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+
+    <script src="/index.js" type="text/javascript" defer></script>
+
+    <title>bitsy pastebin</title>
+  </head>
+  <body>
+    <div class="app container">
+      <header>
+        <div class="row">
+          <div class="column brand">
+            <h1><a href="/">bitsy</a> pastebin</h1>
+          </div>
+          <div class="column column-fixed">
+            <label for="select-language"><span>Language</span></label>
+            <select id="select-language">
+              <option value="plaintext" selected>
+                plaintext
+              </option>
+              <option value="markdown">
+                markdown
+              </option>
+              <option value="javascript">
+                javascript
+              </option>
+              <option value="typescript">
+                typescript
+              </option>
+              <option value="css">
+                css
+              </option>
+              <option value="scss">
+                scss
+              </option>
+              <option value="less">
+                less
+              </option>
+              <option value="html">
+                html
+              </option>
+              <option value="json">
+                json
+              </option>
+              <option value="graphql">
+                graphql
+              </option>
+              <option value="shell">
+                shell
+              </option>
+              <option value="rust">
+                rust
+              </option>
+              <option value="python">
+                python
+              </option>
+            </select>
+          </div>
+          <div class="column column-fixed">
+            <label for="select-theme"><span>Theme</span></label>
+            <select id="select-theme">
+              <option value="vs-ligth" selected>
+                vslight
+              </option>
+              <option value="vs-dark">
+                vsdark
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="column">
+            <!-- need something here or monaco will calculate wrong height -->
+            <span id="status">INIT</span>
+            <span id="link"></span>
+          </div>
+        </div>
+      </header>
+      <main>
+        <div id="editor" class="editor"></div>
+      </main>
+      <footer>
+        <span><a href="/">bitsy pastebin</a> by vadistic</span>
+      </footer>
+    </div>
+
+    <style>
+      .app {
+        height: 100vh;
+        overflow: hidden;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header .row {
+        padding: 0 1rem;
+      }
+
+      header .row:first-child {
+        padding-top: 1rem;
+      }
+
+      header .column.column-fixed {
+        max-width: 16rem;
+      }
+
+      header h1 {
+        margin-bottom: 0.5rem;
+      }
+
+      main {
+        flex: 1 1 auto;
+        margin: 0 -2rem;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #editor {
+        flex: 1 1 auto;
+      }
+
+      footer {
+        padding: 1rem;
+      }
+    </style>
+  </body>
+</html>
