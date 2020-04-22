@@ -3,6 +3,7 @@ import {
   CacheModule,
   NestModule,
   MiddlewareConsumer,
+  Global,
 } from '@nestjs/common';
 import { LoggerModule } from './logger/logger.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -10,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { configuration } from './config';
 import { MorganMiddleware } from './logger/morgan.middleware';
 
+@Global()
 @Module({
   imports: [
     LoggerModule,

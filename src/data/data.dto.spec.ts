@@ -1,91 +1,53 @@
 import { ItemDTO, BucketDTO } from './data.dto';
 import { validateSync } from 'class-validator';
-import { ObjectId } from 'mongodb';
+import {
+  validItem,
+  validBucket,
+  expectShallowTypes,
+  expectValidate,
+} from '../../test/utils';
+import { toClass } from '../dto/transform';
 
-describe('dto serialisation', () => {
-  const date = new Date().toISOString();
-
-  const validItem: ItemDTO = {
-    _id: new ObjectId().toHexString(),
-    createdAt: date,
-    identifier: 'very-mongo-papaya-01',
-    value: { message: 'hey' },
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { value, ...validShallowItem } = validItem;
-
-  const validBucket: BucketDTO = {
-    identifier: 'very-mongo-papaya-01',
-    count: 1,
-    createdAt: date,
-    updatedAt: date,
-    items: [validShallowItem],
-  };
-
+describe('entity serialisation', () => {
   it('ok serialise item', () => {
-    const item = ItemDTO.create(validItem);
+    const item = toClass(ItemDTO, validItem);
+
     expect(item).toMatchObject(validItem);
-    expect(Object.keys(item).sort()).toEqual(Object.keys(validItem).sort());
+    expectShallowTypes(item, validItem);
+    expectValidate(ItemDTO, validItem);
   });
 
   it('ok serialise bucket', () => {
-    const bucket = BucketDTO.create(validBucket);
+    const bucket = toClass(BucketDTO, validBucket);
 
     expect(bucket).toMatchObject(validBucket);
-
-    expect(Object.keys(bucket).sort()).toEqual(Object.keys(validBucket).sort());
-  });
-
-  // ! cannot get classtransformet to work with both exclude& "any" values
-  // using custom whitelisting
-  it('ok skips extra props', () => {
-    const item = ItemDTO.create({ ...validItem, extraProp: 'asd' } as any);
-    expect(item).toEqual(validItem);
-  });
-
-  it('ok default values', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, ...rest } = validItem;
-    const item = ItemDTO.create(rest);
-
-    // shape
-    expect(item).toMatchObject({ ...validItem, _id: item._id });
-    // add default
-    expect(item).toHaveProperty('_id');
-    // do not overrride provided
-    expect(item.createdAt).toEqual(validBucket.createdAt);
+    expectShallowTypes(bucket, validBucket);
+    expectValidate(BucketDTO, validBucket);
   });
 });
 
-describe('dto validation > ItemDTO', () => {
-  const validItem = {
-    _id: new ObjectId().toHexString(),
-    createdAt: new Date().toISOString(),
-    identifier: 'very-mongo-papaya-01',
-    value: {
-      ok: 1,
-    },
-  };
-
+describe('entity validation > ItemDTO', () => {
   it('ok item', () => {
-    expect(validateSync(ItemDTO.create(validItem)).length).toBe(0);
+    const errs = validateSync(toClass(ItemDTO, validItem));
+
+    expect(errs.length).toBe(0);
   });
 
   it('err mongo id', () => {
     const errs = validateSync(
-      ItemDTO.create({
+      toClass(ItemDTO, {
         ...validItem,
         _id: validItem._id.slice(2),
       }),
     );
+
     expect(errs.length).toBe(1);
     expect(errs[0].property).toBe('_id');
   });
 
   it('err date string', () => {
     const errs = validateSync(
-      ItemDTO.create({
+      toClass(ItemDTO, {
         ...validItem,
         createdAt: new Date() as any,
       }),
@@ -97,7 +59,7 @@ describe('dto validation > ItemDTO', () => {
 
   it('err identifier length', () => {
     const errs = validateSync(
-      ItemDTO.create({
+      toClass(ItemDTO, {
         ...validItem,
         identifier: 'my-id',
       }),
@@ -110,7 +72,8 @@ describe('dto validation > ItemDTO', () => {
   it('err missing identifier', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { identifier, ...rest } = validItem;
-    const errs = validateSync(ItemDTO.create(rest as any));
+    const errs = validateSync(toClass(ItemDTO, rest));
+
     expect(errs.length).toBe(1);
     expect(errs[0].property).toBe('identifier');
   });
@@ -118,7 +81,8 @@ describe('dto validation > ItemDTO', () => {
   it('err missing value', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { value, ...rest } = validItem;
-    const errs = validateSync(ItemDTO.create({ ...rest, value: {} }));
+    const errs = validateSync(toClass(ItemDTO, rest));
+
     expect(errs.length).toBe(1);
     expect(errs[0].property).toBe('value');
   });
@@ -126,42 +90,31 @@ describe('dto validation > ItemDTO', () => {
   it('err invalid value', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { value, ...rest } = validItem;
-    const errs = validateSync(ItemDTO.create({ ...rest, value: 'asd' }));
+    const errs = validateSync(toClass(ItemDTO, { ...rest, value: 'asd' }));
+
     expect(errs.length).toBe(1);
     expect(errs[0].property).toBe('value');
   });
 });
 
 describe('dto validation > BucketDTO', () => {
-  const date = new Date().toISOString();
-
-  const validBucket: BucketDTO = {
-    createdAt: date,
-    updatedAt: date,
-    count: 1,
-    identifier: 'my-valid-bucket-id-01',
-    items: [
-      {
-        _id: new ObjectId().toHexString(),
-        createdAt: date,
-        identifier: 'my-valid-bucket-id-01',
-      },
-    ],
-  };
-
   it('ok bucket', () => {
-    expect(validateSync(BucketDTO.create(validBucket)).length).toBe(0);
+    const errs = validateSync(toClass(BucketDTO, validBucket));
+
+    expect(errs.length).toBe(0);
   });
 
-  it('err count 0', () => {
-    const errs = validateSync(BucketDTO.create({ ...validBucket, count: 0 }));
+  it('err count min', () => {
+    const errs = validateSync(toClass(BucketDTO, { ...validBucket, count: 0 }));
 
     expect(errs.length).toBe(1);
     expect(errs[0].property).toBe('count');
   });
 
-  it('err no items', () => {
-    const errs = validateSync(BucketDTO.create({ ...validBucket, items: [] }));
+  it('err items length min', () => {
+    const errs = validateSync(
+      toClass(BucketDTO, { ...validBucket, items: [] }),
+    );
 
     expect(errs.length).toBe(1);
     expect(errs[0].property).toBe('items');

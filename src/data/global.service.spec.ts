@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataController } from './data.controller';
 import { MongoModule } from '../mongo/mongo.module';
 import { GlobalModule } from '../global.module';
+import { GlobalService } from './global.service';
 import { DataModule } from './data.module';
 
-describe('DataController', () => {
-  let controller: DataController;
+describe('GlobalService', () => {
+  let service: GlobalService;
   let mod: TestingModule;
 
   beforeAll(async () => {
@@ -13,7 +13,7 @@ describe('DataController', () => {
       imports: [MongoModule, GlobalModule, DataModule],
     }).compile();
 
-    controller = mod.get<DataController>(DataController);
+    service = mod.get(GlobalService);
   });
 
   afterAll(async () => {
@@ -21,6 +21,6 @@ describe('DataController', () => {
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(service).toBeDefined();
   });
 });

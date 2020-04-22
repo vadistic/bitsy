@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { ConfigType, registerAs } from '@nestjs/config';
 import { Inject } from '@nestjs/common';
-import { defined } from './utils';
+import { definedOrReject } from './utils';
 
 const mongoRx = /mongodb:\/\/(?<user>[\w-.]+):(?<pass>[\w-.]+)@(?<host>[\w-.]+)(?<port>:[0-9.]+)*\/*(?<name>[\w-.]+)/;
 
 export const configuration = registerAs('config', () => {
   const { groups = {} } = mongoRx.exec(process.env.MONGODB_URL || '') || {};
 
-  const config = defined({
+  const config = definedOrReject({
     DEV: !process.env.NODE_ENV || process.env.NODE_ENV === 'development',
 
     MONGODB_URL: process.env.MONGODB_URL,

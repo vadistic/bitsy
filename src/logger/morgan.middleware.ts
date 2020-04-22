@@ -13,6 +13,7 @@ export class MorganMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     if (!this.config.DEV) {
       next();
+      return;
     }
 
     return morgan('short', {

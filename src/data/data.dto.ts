@@ -1,5 +1,4 @@
 import { OmitType } from '@nestjs/swagger';
-import { Serialisable } from '../utils';
 import {
   IsDateString,
   MinLength,
@@ -9,39 +8,35 @@ import {
   IsNumber,
   Min,
   ArrayMinSize,
-  IsEnum,
-  IsOptional,
-  IsInt,
-  Max,
 } from 'class-validator';
 import { ObjectId } from 'mongodb';
-import { Transform, Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
+import { Default } from '../dto/default.decorator';
 
 // doc stored in database
-export class ItemDTO extends Serialisable<ItemDTO, '_id' | 'createdAt'>() {
-  /** internal mongodb id */
+export class ItemDTO {
   @IsMongoId()
-  _id: string = new ObjectId().toHexString();
+  @Default(() => new ObjectId().toHexString())
+  @Expose()
+  /** internal mongodb id */
+  _id!: string;
 
-  /** create date */
   @IsDateString()
-  createdAt: string = new Date().toISOString();
+  @Default(() => new Date().toISOString())
+  @Expose()
+  /** create date */
+  createdAt!: string;
 
-  /** unique bucket identifier */
   @MinLength(12)
   @MaxLength(36)
+  @Expose()
+  /** unique bucket identifier */
   identifier!: string;
 
-  /** arbitrary JSON data */
   @IsNotEmptyObject()
+  @Expose()
+  /** arbitrary JSON data */
   value!: any;
-
-  static whitelist: (keyof ItemDTO)[] = [
-    '_id',
-    'createdAt',
-    'identifier',
-    'value',
-  ];
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -49,92 +44,34 @@ export class ItemDTO extends Serialisable<ItemDTO, '_id' | 'createdAt'>() {
 export class ItemShallowDTO extends OmitType(ItemDTO, ['value']) {}
 
 // virtual - not stored in db
-export class BucketDTO extends Serialisable<BucketDTO>() {
+export class BucketDTO {
   @IsDateString()
+  @Expose()
   /** create date */
   createdAt!: string;
 
   @IsDateString()
+  @Expose()
   /** update date */
   updatedAt!: string;
 
   @MinLength(12)
   @MaxLength(36)
+  @Expose()
   /** unique bucket identifier */
   identifier!: string;
 
   @IsNumber()
   @Min(1)
+  @Expose()
   /** items count in bucket */
   count!: number;
 
   @ArrayMinSize(1)
   @Type(() => ItemShallowDTO)
+  @Expose()
   /** shallow items in bucket */
   items!: ItemShallowDTO[];
-
-  static whitelist: (keyof BucketDTO)[] = [
-    'createdAt',
-    'updatedAt',
-    'identifier',
-    'count',
-    'items',
-  ];
 }
 
 export class BucketShallowDTO extends OmitType(BucketDTO, ['items']) {}
-
-// ────────────────────────────────────────────────────────────────────────────────
-
-export class UniqueDTO extends Serialisable<UniqueDTO>() {
-  @IsMongoId()
-  /** internal mongo objectId */
-  _id!: string;
-}
-
-export class ValueDTO extends Serialisable<ValueDTO>() {
-  @IsNotEmptyObject()
-  /** any arbitrary JSON data */
-  value: any;
-}
-
-export class IdentifierDTO extends Serialisable<IdentifierDTO>() {
-  @MinLength(12)
-  @MaxLength(36)
-  /** unique bucket identifier */
-  identifier!: string;
-}
-
-export class CountDTO extends Serialisable<CountDTO>() {
-  @IsNumber()
-  @Min(1)
-  /** count of stuff */
-  count!: number;
-}
-
-export enum SortType {
-  ASC = 1,
-  DESC = -1,
-  OFF = 0,
-}
-
-export class PaginationDTO extends Serialisable<PaginationDTO>() {
-  @Transform((val) => (val === 'asc' ? 1 : val == 'desc' ? -1 : val))
-  @IsEnum(SortType)
-  /** sort by mongo id direcction */
-  sort!: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  limit?: number = 10;
-
-  @IsOptional()
-  @IsMongoId()
-  after?: string;
-
-  @IsOptional()
-  @IsMongoId()
-  before?: string;
-}

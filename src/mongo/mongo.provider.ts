@@ -24,6 +24,8 @@ export const MongoProvider: Provider = {
       logger: mongoLogger,
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      // best setting ever
+      ignoreUndefined: true,
     });
   },
   inject: [configuration.KEY, LoggerService],

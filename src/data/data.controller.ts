@@ -8,10 +8,10 @@ import {
   Delete,
   Put,
   UsePipes,
-  ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { DataService } from './data.service';
-import { ItemDTO, IdentifierDTO, BucketDTO, CountDTO } from './data.dto';
+import { ItemDTO, BucketDTO } from './data.dto';
 import {
   ApiOkResponse,
   ApiTags,
@@ -19,9 +19,11 @@ import {
   ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { LoggerService } from '../logger/logger.service';
+import { IdentifierDTO, PaginationDTO, CountDTO } from '../dto/common.dto';
+import { CustomValidationPipe } from '../dto/transform';
 
 @Controller('/api')
-@UsePipes(ValidationPipe)
+@UsePipes(CustomValidationPipe)
 @ApiTags('buckets')
 export class DataController {
   constructor(
@@ -48,6 +50,7 @@ export class DataController {
 
   @Get('/buckets/:identifier/last')
   @ApiOkResponse({ type: ItemDTO })
+  @ApiNotFoundResponse({ type: IdentifierDTO })
   async getLastBucketItem(@Param() param: IdentifierDTO): Promise<ItemDTO> {
     const item = await this.service.findLastItem(param);
 
@@ -62,8 +65,18 @@ export class DataController {
 
   @Get('/buckets/:identifier/items')
   @ApiOkResponse({ type: ItemDTO, isArray: true })
-  async getBucketItems(@Param() param: IdentifierDTO): Promise<ItemDTO[]> {
-    return this.service.findManyItems(param);
+  @ApiNotFoundResponse({ type: IdentifierDTO })
+  async getBucketItems(
+    @Param() param: IdentifierDTO,
+    @Query() query: PaginationDTO,
+  ): Promise<ItemDTO[]> {
+    const items = await this.service.findManyItems({ ...param, ...query });
+
+    if (!items.length) {
+      throw new NotFoundException(param);
+    }
+
+    return this.service.findManyItems({ ...param, ...query });
   }
 
   // ────────────────────────────────────────────────────────────────────────────────
@@ -91,11 +104,17 @@ export class DataController {
 
   @Put('/buckets/:identifier')
   @ApiOkResponse({ type: ItemDTO })
+  @ApiNotFoundResponse({ type: IdentifierDTO })
   async putBucket(
     @Param() param: IdentifierDTO,
     @Body() body: any,
   ): Promise<ItemDTO> {
-    await this.service.deleteBucket(param);
+    const deleted = await this.service.deleteBucket(param);
+
+    if (deleted.count === 0) {
+      throw new NotFoundException(param);
+    }
+
     return this.service.pushToBucket({ ...param, value: body });
   }
 
@@ -103,7 +122,14 @@ export class DataController {
 
   @Delete('/buckets/:identifier')
   @ApiOkResponse({ type: CountDTO })
+  @ApiNotFoundResponse({ type: IdentifierDTO })
   async deleteBucket(@Param() param: IdentifierDTO): Promise<CountDTO> {
-    return this.service.deleteBucket(param);
+    const deleted = await this.service.deleteBucket(param);
+
+    if (deleted.count === 0) {
+      throw new NotFoundException(param);
+    }
+
+    return deleted;
   }
 }

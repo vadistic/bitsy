@@ -2,9 +2,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { BucketShallowDTO, BucketDTO } from 'src/data/data.dto';
+import {
+  BucketShallowDTO,
+  ItemDTO,
+  ItemShallowDTO,
+} from '../src/data/data.dto';
+import {
+  expectShallowTypes,
+  expectValidate,
+  validItem,
+  validBucketShallow,
+  validItemShallow,
+  expectSorted,
+} from './utils';
+import { SortDirection } from '../src/dto/common.dto';
 
-describe('DataController (e2e)', () => {
+describe('GlobalController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -20,17 +33,27 @@ describe('DataController (e2e)', () => {
     await app.close();
   });
 
-  it('GET /api/global', () => {
+  it('GET /api/global ok', () => {
     return request(app.getHttpServer())
       .get('/api/global')
       .expect(200)
       .then((res) => {
-        const b: BucketShallowDTO = res.body[0];
-        expect(typeof b.count).toBe('number');
-        expect(typeof b.identifier).toBe('string');
-        expect(b.createdAt).toBeDefined();
+        const bucket: BucketShallowDTO = res.body[0];
 
-        expect(b).not.toHaveProperty('items');
+        expectShallowTypes(bucket, validBucketShallow);
+        expectValidate(BucketShallowDTO, bucket);
+      });
+  });
+
+  it('GET /api/global?sort=asc&limit=4 ok', () => {
+    return request(app.getHttpServer())
+      .get('/api/global?sort=asc&limit=4')
+      .expect(200)
+      .then((res) => {
+        const buckets: BucketShallowDTO[] = res.body;
+
+        expectSorted(SortDirection.ASC, buckets);
+        expect(buckets.length).toBeLessThanOrEqual(4);
       });
   });
 
@@ -39,30 +62,22 @@ describe('DataController (e2e)', () => {
       .get('/api/global/last')
       .expect(200)
       .then((res) => {
-        const b: BucketDTO = res.body;
-        expect(typeof b.count).toBe('number');
-        expect(typeof b.identifier).toBe('string');
-        expect(b.createdAt).toBeDefined();
+        const item: ItemDTO = res.body;
 
-        expect(b.items.length).toBeGreaterThanOrEqual(1);
-
-        expect(b.items[0].identifier).toBe(b.identifier);
+        expectShallowTypes(item, validItem);
+        expectValidate(ItemDTO, item);
       });
   });
 
   it('GET /api/global/items', () => {
     return request(app.getHttpServer())
-      .get('/api/global/last')
+      .get('/api/global/items')
       .expect(200)
       .then((res) => {
-        const b: BucketDTO = res.body;
-        expect(typeof b.count).toBe('number');
-        expect(typeof b.identifier).toBe('string');
-        expect(b.createdAt).toBeDefined();
+        const items: ItemShallowDTO[] = res.body;
 
-        expect(b.items.length).toBeGreaterThanOrEqual(1);
-
-        expect(b.items[0].identifier).toBe(b.identifier);
+        expectShallowTypes(items[0], validItemShallow);
+        expectValidate(ItemShallowDTO, items[0]);
       });
   });
 });

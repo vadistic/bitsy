@@ -5,6 +5,9 @@ import {
   ItemShallowDTO,
 } from '../src/data/data.dto';
 import { ObjectId } from 'mongodb';
+import { validateSync } from 'class-validator';
+import { toClass } from '../src/dto/transform';
+import { SortDirection } from '../src/dto/common.dto';
 
 const date = new Date().toISOString();
 
@@ -33,7 +36,14 @@ const { items, ..._validBucketShallow } = validBucket;
 
 export const validBucketShallow: BucketShallowDTO = _validBucketShallow;
 
-export const expectEqualTypes = (objA: any, objB: any) => {
+// ────────────────────────────────────────────────────────────────────────────────
+
+export const expectShallowTypes = (objA: any, objB: any) => {
+  if (!objA || !objB) {
+    // need error
+    expect(objA).toMatchObject(objB);
+  }
+
   const keysA = Object.keys(objA).sort();
   const keysB = Object.keys(objB).sort();
   // names
@@ -44,8 +54,19 @@ export const expectEqualTypes = (objA: any, objB: any) => {
   );
 };
 
+export const expectValidate = (ref: any, obj: any) => {
+  const errs = validateSync(toClass(ref, obj));
+
+  expect(errs).toEqual([]);
+};
+
 export const expectDateSecondsAgo = (date: Date | string, seconds: number) => {
   const ago = Date.now() - seconds * 1000;
 
   expect(new Date(date).getTime() > ago).toBeTruthy();
+};
+
+export const expectSorted = (dir: SortDirection, arr: any[]) => {
+  const sorted = arr.sort((a, b) => (a._id > b._id ? dir : -dir));
+  expect(sorted).toEqual(arr);
 };
