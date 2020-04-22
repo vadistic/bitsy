@@ -12,7 +12,12 @@ import {
 } from '@nestjs/common';
 import { DataService } from './data.service';
 import { ItemDTO, IdentifierDTO, BucketDTO, CountDTO } from './data.dto';
-import { ApiOkResponse, ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiTags,
+  ApiBody,
+  ApiNotFoundResponse,
+} from '@nestjs/swagger';
 import { LoggerService } from '../logger/logger.service';
 
 @Controller('/api')
@@ -28,6 +33,7 @@ export class DataController {
 
   @Get('/buckets/:identifier')
   @ApiOkResponse({ type: BucketDTO })
+  @ApiNotFoundResponse({ type: IdentifierDTO })
   async getBucket(@Param() param: IdentifierDTO): Promise<BucketDTO> {
     const bucket = await this.service.findOneBucket(param);
 

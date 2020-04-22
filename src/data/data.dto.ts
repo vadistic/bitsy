@@ -118,14 +118,12 @@ export enum SortType {
   OFF = 0,
 }
 
-export class SortDTO extends Serialisable<SortDTO>() {
+export class PaginationDTO extends Serialisable<PaginationDTO>() {
   @Transform((val) => (val === 'asc' ? 1 : val == 'desc' ? -1 : val))
   @IsEnum(SortType)
   /** sort by mongo id direcction */
   sort!: number;
-}
 
-export class PaginationDTO extends Serialisable<PaginationDTO>() {
   @IsOptional()
   @IsInt()
   @Min(0)

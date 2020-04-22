@@ -1,8 +1,14 @@
-import { Module, CacheModule } from '@nestjs/common';
+import {
+  Module,
+  CacheModule,
+  NestModule,
+  MiddlewareConsumer,
+} from '@nestjs/common';
 import { LoggerModule } from './logger/logger.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import { configuration } from './config';
+import { MorganMiddleware } from './logger/morgan.middleware';
 
 @Module({
   imports: [
@@ -12,4 +18,8 @@ import { configuration } from './config';
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
   ],
 })
-export class GlobalModule {}
+export class GlobalModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MorganMiddleware).forRoutes('/api');
+  }
+}

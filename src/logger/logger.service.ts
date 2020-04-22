@@ -1,19 +1,53 @@
-import { Logger, Injectable } from '@nestjs/common';
+import { Logger, Injectable, LogLevel, Inject } from '@nestjs/common';
+import { INQUIRER } from '@nestjs/core';
 
 export const LOG_COLLECTION = 'Logs';
 
-interface LoggerCache {
-  log: string[];
-  error: string[];
-  warn: string[];
-  debug: string[];
-  verbose: string[];
-}
+type LoggerCache = Record<LogLevel, string[]>;
 
 @Injectable()
-export class LoggerService {
-  private readonly nest = new Logger('app', true);
+export class ContextLogger {
+  constructor(
+    readonly nest: Logger,
+    // https://github.com/nestjs/docs.nestjs.com/issues/937
+    @Inject(INQUIRER) readonly context: string,
+  ) {}
 
+  log(msg?: string, context?: string) {
+    if (msg) {
+      this.nest.log(msg, context || this.context);
+    }
+  }
+
+  error(msg?: string, context?: string) {
+    if (msg) {
+      this.nest.error(msg, undefined, context || this.context);
+    }
+  }
+
+  warn(msg?: string, context?: string) {
+    if (msg) {
+      this.nest.warn(msg, context || this.context);
+    }
+  }
+
+  debug(msg?: string, context?: string) {
+    if (msg) {
+      this.nest.debug(msg, context || this.context);
+    }
+  }
+
+  verbose(msg?: string, context?: string) {
+    if (msg) {
+      this.nest.verbose(msg, context || this.context);
+    }
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────────
+
+@Injectable()
+export class LoggerService extends ContextLogger {
   readonly cache: LoggerCache = {
     log: [],
     error: [],
@@ -22,24 +56,8 @@ export class LoggerService {
     verbose: [],
   };
 
-  log(message: string) {
-    this.nest.log(message);
-  }
-
-  error(message: string, trace: string) {
-    this.nest.error(message, trace);
-  }
-
-  warn(message: string) {
-    this.nest.warn(message);
-  }
-
-  debug(message: string) {
-    this.nest.debug(message);
-  }
-
-  verbose(message: string) {
-    this.nest.verbose(message);
+  child(context: string) {
+    return new ContextLogger(this.nest, context);
   }
 
   dump() {
