@@ -7,6 +7,8 @@ import {
   NotFoundException,
   Delete,
   Put,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { DataService } from './data.service';
 import { ItemDTO, IdentifierDTO, BucketDTO, CountDTO } from './data.dto';
@@ -14,6 +16,7 @@ import { ApiOkResponse, ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { LoggerService } from '../logger/logger.service';
 
 @Controller('/api')
+@UsePipes(ValidationPipe)
 @ApiTags('buckets')
 export class DataController {
   constructor(
@@ -24,12 +27,7 @@ export class DataController {
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Get('/buckets/:identifier')
-  @ApiOperation({
-    description: `get bucket`,
-  })
-  @ApiOkResponse({
-    type: BucketDTO,
-  })
+  @ApiOkResponse({ type: BucketDTO })
   async getBucket(@Param() param: IdentifierDTO): Promise<BucketDTO> {
     const bucket = await this.service.findOneBucket(param);
 
@@ -43,12 +41,7 @@ export class DataController {
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Get('/buckets/:identifier/last')
-  @ApiOperation({
-    description: `last item in bucket`,
-  })
-  @ApiOkResponse({
-    type: ItemDTO,
-  })
+  @ApiOkResponse({ type: ItemDTO })
   async getLastBucketItem(@Param() param: IdentifierDTO): Promise<ItemDTO> {
     const item = await this.service.findLastItem(param);
 
@@ -62,33 +55,16 @@ export class DataController {
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Get('/buckets/:identifier/items')
-  @ApiOperation({
-    description: `get items in bucket`,
-  })
-  @ApiOkResponse({
-    type: ItemDTO,
-    isArray: true,
-  })
+  @ApiOkResponse({ type: ItemDTO, isArray: true })
   async getBucketItems(@Param() param: IdentifierDTO): Promise<ItemDTO[]> {
-    console.log('here');
-
-    this.logger.log('asdasd');
     return this.service.findManyItems(param);
   }
 
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Post('/buckets/new')
-  @ApiOperation({
-    description: `create new bucket by pushing first item\n\nit will generate cool & safe identifier`,
-  })
-  @ApiBody({
-    required: true,
-    description: 'any JSON data',
-  })
-  @ApiOkResponse({
-    type: ItemDTO,
-  })
+  @ApiBody({ required: true, description: 'JSON' })
+  @ApiOkResponse({ type: ItemDTO })
   async postNew(@Body() body: any): Promise<ItemDTO> {
     return this.service.pushToBucket({ value: body });
   }
@@ -96,16 +72,8 @@ export class DataController {
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Post('/buckets/:identifier')
-  @ApiOperation({
-    description: `add new item to bucket (dynamically create bucket if not exists)`,
-  })
-  @ApiBody({
-    required: true,
-    description: 'any JSON data',
-  })
-  @ApiOkResponse({
-    type: ItemDTO,
-  })
+  @ApiBody({ required: true, description: 'JSON' })
+  @ApiOkResponse({ type: ItemDTO })
   async postPush(
     @Param() param: IdentifierDTO,
     @Body() body: any,
@@ -116,12 +84,7 @@ export class DataController {
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Put('/buckets/:identifier')
-  @ApiOperation({
-    description: `overwrite bucket with new data (this delete previous items)`,
-  })
-  @ApiOkResponse({
-    type: ItemDTO,
-  })
+  @ApiOkResponse({ type: ItemDTO })
   async putBucket(
     @Param() param: IdentifierDTO,
     @Body() body: any,
@@ -133,12 +96,7 @@ export class DataController {
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Delete('/buckets/:identifier')
-  @ApiOperation({
-    description: `delete bucket`,
-  })
-  @ApiOkResponse({
-    type: CountDTO,
-  })
+  @ApiOkResponse({ type: CountDTO })
   async deleteBucket(@Param() param: IdentifierDTO): Promise<CountDTO> {
     return this.service.deleteBucket(param);
   }

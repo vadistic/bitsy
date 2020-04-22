@@ -17,6 +17,7 @@ import {
   animals,
 } from 'unique-names-generator';
 import { StrictProjection } from '../types';
+import { serialise } from '../utils';
 
 export const ITEMS_COLLECTION = 'Items';
 
@@ -71,16 +72,16 @@ export class DataService {
       { limit: 100, sort: { _id: -1 }, projection: { value: 0 } },
     );
 
-    return cursor.toArray();
+    return cursor.toArray().then((arr) => arr.map(serialise(ItemShallowDTO)));
   }
 
-  async globalFindLastItem(): Promise<ItemDTO | null> {
+  async globalFindLastItem(): Promise<ItemDTO | undefined> {
     const cursor = this.collections.items.find(
       {},
       { sort: { _id: -1 }, limit: 1 },
     );
 
-    return cursor.next();
+    return ItemDTO.createAsync(cursor.next());
   }
 
   async globalFindManyBuckets(): Promise<BucketShallowDTO[]> {
@@ -110,10 +111,10 @@ export class DataService {
       },
     ]);
 
-    return cursor.toArray();
+    return cursor.toArray().then((arr) => arr.map(serialise(BucketShallowDTO)));
   }
 
-  async globalFindLastBucket(): Promise<BucketDTO | null> {
+  async globalFindLastBucket(): Promise<BucketDTO | undefined> {
     const cursor = this.collections.items.aggregate<BucketDTO>([
       { $sort: { _id: -1 } },
       { $limit: 1 },
@@ -144,16 +145,16 @@ export class DataService {
       },
     ]);
 
-    return cursor.next();
+    return BucketDTO.createAsync(cursor.next());
   }
 
-  async findItemById({ _id: id }: UniqueDTO): Promise<ItemDTO | null> {
+  async findItemById({ _id: id }: UniqueDTO): Promise<ItemDTO | undefined> {
     const res = await this.collections.items.findOne(
       { _id: { $eq: id } },
       { limit: 1 },
     );
 
-    return res;
+    return ItemDTO.create(res);
   }
 
   async findManyItems({ identifier }: IdentifierDTO): Promise<ItemDTO[]> {
@@ -164,12 +165,12 @@ export class DataService {
       { sort: { _id: -1 } },
     );
 
-    console.log(await cursor.toArray());
-
     return cursor.toArray();
   }
 
-  async findLastItem({ identifier }: IdentifierDTO): Promise<ItemDTO | null> {
+  async findLastItem({
+    identifier,
+  }: IdentifierDTO): Promise<ItemDTO | undefined> {
     const res = await this.collections.items.findOne(
       {
         identifier: { $eq: identifier },
@@ -177,12 +178,12 @@ export class DataService {
       { sort: { _id: -1 } },
     );
 
-    return res;
+    return ItemDTO.create(res);
   }
 
   async findOneBucket({
     identifier,
-  }: IdentifierDTO): Promise<BucketDTO | null> {
+  }: IdentifierDTO): Promise<BucketDTO | undefined> {
     const cursor = this.collections.items.aggregate<BucketDTO>([
       { $match: { identifier: { $eq: identifier } } },
       { $sort: { _id: -1 } },
@@ -215,7 +216,7 @@ export class DataService {
 
     const res = await cursor.next();
 
-    return res;
+    return BucketDTO.create(res);
   }
 
   async pushToBucket({
@@ -237,6 +238,6 @@ export class DataService {
   async deleteBucket({ identifier }: IdentifierDTO): Promise<CountDTO> {
     const res = await this.collections.items.deleteMany({ identifier });
 
-    return { count: res.deletedCount ?? 0 };
+    return CountDTO.create({ count: res.deletedCount ?? 0 });
   }
 }

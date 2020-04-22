@@ -1,44 +1,47 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { OmitType } from '@nestjs/swagger';
+import { Serialisable } from '../utils';
+import {
+  IsDateString,
+  MinLength,
+  MaxLength,
+  IsMongoId,
+  IsNotEmptyObject,
+  IsNumber,
+  Min,
+  ArrayMinSize,
+  IsEnum,
+  IsOptional,
+  IsInt,
+  Max,
+} from 'class-validator';
 import { ObjectId } from 'mongodb';
-import {} from 'class-transformer';
-import { serialise } from '../utils';
-
-type MarkRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
-type MarkPartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+import { Transform, Type } from 'class-transformer';
 
 // doc stored in database
-export class ItemDTO {
-  @ApiProperty({
-    description: `internal mongo objectId`,
-  })
-  _id!: string;
+export class ItemDTO extends Serialisable<ItemDTO, '_id' | 'createdAt'>() {
+  /** internal mongodb id */
+  @IsMongoId()
+  _id: string = new ObjectId().toHexString();
 
-  @ApiProperty({
-    description: `create date`,
-    format: 'date-time',
-  })
-  createdAt!: string;
+  /** create date */
+  @IsDateString()
+  createdAt: string = new Date().toISOString();
 
-  @ApiProperty({
-    description: `unique bucket identifier`,
-  })
+  /** unique bucket identifier */
+  @MinLength(12)
+  @MaxLength(36)
   identifier!: string;
 
-  @ApiProperty({
-    description: `any arbitrary JSON data`,
-    type: {},
-  })
+  /** arbitrary JSON data */
+  @IsNotEmptyObject()
   value!: any;
 
-  // TODO: how to class transofrmers defaults?
-  static create({
-    _id = new ObjectId().toHexString(),
-    createdAt = new Date().toISOString(),
-    identifier,
-    value,
-  }: MarkRequired<ItemDTO, 'identifier' | 'value'>) {
-    return serialise(ItemDTO, { _id, createdAt, identifier, value });
-  }
+  static whitelist: (keyof ItemDTO)[] = [
+    '_id',
+    'createdAt',
+    'identifier',
+    'value',
+  ];
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -46,80 +49,94 @@ export class ItemDTO {
 export class ItemShallowDTO extends OmitType(ItemDTO, ['value']) {}
 
 // virtual - not stored in db
-export class BucketDTO {
-  @ApiProperty({
-    description: `create date`,
-    format: 'date-time',
-  })
+export class BucketDTO extends Serialisable<BucketDTO>() {
+  @IsDateString()
+  /** create date */
   createdAt!: string;
 
-  @ApiProperty({
-    description: `update date`,
-    format: 'date-time',
-  })
+  @IsDateString()
+  /** update date */
   updatedAt!: string;
 
-  @ApiProperty({
-    description: `unique bucket identifier`,
-  })
+  @MinLength(12)
+  @MaxLength(36)
+  /** unique bucket identifier */
   identifier!: string;
 
-  @ApiProperty({
-    description: `items count in bucket`,
-  })
+  @IsNumber()
+  @Min(1)
+  /** items count in bucket */
   count!: number;
 
-  @ApiProperty({
-    description: `(shallow) items in bucket`,
-    type: () => ItemShallowDTO,
-    isArray: true,
-  })
+  @ArrayMinSize(1)
+  @Type(() => ItemShallowDTO)
+  /** shallow items in bucket */
   items!: ItemShallowDTO[];
 
-  static create({ count, createdAt, identifier, items, updatedAt }: BucketDTO) {
-    return serialise(BucketDTO, {
-      count,
-      createdAt,
-      identifier,
-      items,
-      updatedAt,
-    });
-  }
+  static whitelist: (keyof BucketDTO)[] = [
+    'createdAt',
+    'updatedAt',
+    'identifier',
+    'count',
+    'items',
+  ];
 }
 
 export class BucketShallowDTO extends OmitType(BucketDTO, ['items']) {}
 
 // ────────────────────────────────────────────────────────────────────────────────
 
-export class UniqueDTO {
-  @ApiProperty({
-    description: `internal mongo objectId`,
-  })
+export class UniqueDTO extends Serialisable<UniqueDTO>() {
+  @IsMongoId()
+  /** internal mongo objectId */
   _id!: string;
 }
 
-export class ValueDTO {
-  @ApiProperty({
-    description: `any arbitrary JSON data`,
-  })
+export class ValueDTO extends Serialisable<ValueDTO>() {
+  @IsNotEmptyObject()
+  /** any arbitrary JSON data */
   value: any;
 }
 
-export class IdentifierDTO {
-  @ApiProperty({
-    description: `unique bucket identifier`,
-  })
+export class IdentifierDTO extends Serialisable<IdentifierDTO>() {
+  @MinLength(12)
+  @MaxLength(36)
+  /** unique bucket identifier */
   identifier!: string;
 }
 
-export class CountDTO {
-  @ApiProperty({
-    description: `counts stuff`,
-  })
+export class CountDTO extends Serialisable<CountDTO>() {
+  @IsNumber()
+  @Min(1)
+  /** count of stuff */
   count!: number;
 }
 
-// export class BucketShallowDTO extends OmitType(Bucket, ['items']) {}
+export enum SortType {
+  ASC = 1,
+  DESC = -1,
+  OFF = 0,
+}
 
-// TODO: DTO follwing JSON API standard
-// https://jsonapi.org/
+export class SortDTO extends Serialisable<SortDTO>() {
+  @Transform((val) => (val === 'asc' ? 1 : val == 'desc' ? -1 : val))
+  @IsEnum(SortType)
+  /** sort by mongo id direcction */
+  sort!: number;
+}
+
+export class PaginationDTO extends Serialisable<PaginationDTO>() {
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  limit?: number = 10;
+
+  @IsOptional()
+  @IsMongoId()
+  after?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  before?: string;
+}

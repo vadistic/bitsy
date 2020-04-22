@@ -1,31 +1,32 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { serialise } from './utils';
-import { IsString, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  IsNotEmpty,
+  IsAlpha,
+} from 'class-validator';
 
 export class HelloDTO {
-  @ApiProperty({
-    description: `your name`,
-    example: `Jakub`,
-    type: 'string',
-    required: false,
-  })
   @IsOptional()
-  @IsString()
+  @IsAlpha()
+  @MinLength(2)
+  @MaxLength(24)
   name?: string;
 
   static create({ name }: HelloDTO = {}) {
-    return serialise(HelloDTO, { name });
+    return serialise(HelloDTO)({ name });
   }
 }
 
 export class MessageDTO {
-  @ApiProperty({
-    description: `server message`,
-  })
+  @IsString()
+  @IsNotEmpty()
   @IsString()
   message!: string;
 
   static create({ message }: MessageDTO) {
-    return serialise(MessageDTO, { message });
+    return serialise(MessageDTO)({ message });
   }
 }

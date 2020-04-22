@@ -2,11 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DataService } from './data.service';
 import { MongoModule } from '../mongo/mongo.module';
 import { GlobalModule } from '../global.module';
-import { ItemDTO } from './data.dto';
+import {
+  expectEqualTypes,
+  validItem,
+  validItemShallow,
+} from '../../test/utils';
 
 describe('DataService', () => {
   let service: DataService;
   let mod: TestingModule;
+  const IDENTIFIER = 'data-service-test-02';
 
   beforeEach(async () => {
     mod = await Test.createTestingModule({
@@ -42,46 +47,35 @@ describe('DataService', () => {
   describe('create', () => {
     it('should push to existing bucket', async () => {
       const value = { message: 'Push to existing', when: new Date() };
-      const identifier = 'data-service-test-01';
 
-      const item = ItemDTO.create({ identifier, value });
-
-      const pushed = await service.pushToBucket({
-        identifier,
+      const item = await service.pushToBucket({
+        identifier: IDENTIFIER,
         value,
       });
 
-      const last = await service.findLastItem({ identifier });
+      const last = await service.findLastItem({ identifier: IDENTIFIER });
 
-      // has exactly the same keys
-      expect(Object.keys(pushed)).toEqual(Object.keys(item));
-
-      expect(pushed).toMatchObject({ value });
-
-      expect(pushed).toEqual(last);
+      expectEqualTypes(item, validItem);
+      expect(last).toMatchObject({ value });
+      expect(item).toMatchObject({ value });
+      expect(item).toEqual(last);
     });
 
     it('should push to new bucket', async () => {
       const value = { message: 'Push to new', when: new Date() };
 
-      const pushed = await service.pushToBucket({
+      const item = await service.pushToBucket({
         value,
       });
 
-      const item = ItemDTO.create({ identifier: pushed.identifier, value });
-
       const last = await service.findLastItem({
-        identifier: pushed.identifier,
+        identifier: item.identifier,
       });
 
-      expect(pushed).toMatchObject({ value });
-
-      // has exactly the same keys
-      expect(Object.keys(pushed)).toEqual(Object.keys(item));
-
-      expect(pushed).toMatchObject({ value });
-
-      expect(pushed).toEqual(last);
+      expectEqualTypes(item, validItem);
+      expect(last).toMatchObject({ value });
+      expect(item).toMatchObject({ value });
+      expect(item).toEqual(last);
     });
   });
 
@@ -91,6 +85,14 @@ describe('DataService', () => {
 
       const all = await service.findManyItems({ identifier });
       const bucket = await service.findOneBucket({ identifier });
+
+      all.forEach((item) => {
+        expectEqualTypes(item, validItem);
+      });
+
+      bucket?.items.forEach((itemShallow) => {
+        expectEqualTypes(itemShallow, validItemShallow);
+      });
 
       // length
       expect(all.length).toBe(bucket?.count);

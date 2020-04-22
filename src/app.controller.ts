@@ -2,12 +2,10 @@ import {
   Controller,
   Get,
   Query,
-  UsePipes,
-  ValidationPipe,
   Post,
   Body,
-  ClassSerializerInterceptor,
-  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiOkResponse } from '@nestjs/swagger';
@@ -15,7 +13,6 @@ import { MessageDTO, HelloDTO } from './app.dto';
 
 @Controller('/api')
 @UsePipes(ValidationPipe)
-@UseInterceptors(ClassSerializerInterceptor)
 export class AppController {
   constructor(private readonly appService: AppService) {}
 

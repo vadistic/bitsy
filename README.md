@@ -12,7 +12,7 @@ Bitsy data store API for backendless prototyping
 
 ## Idea
 
-Simple endpoint for any arbitrary JSON
+Simple endpoint for storing JSONs
 
 - create bucket by posting to it (or using `/api/buckets/new`)
 - add more data
@@ -22,8 +22,7 @@ Simple endpoint for any arbitrary JSON
 
 [Swagger docs](https://bitsy-nosql-bucket.herokuapp.com/)
 
-## TODO
+## Examples
 
-- filter/pagination
-- readonly/ optional auth
-- webhooks?
+- simple
+- bitsy pastebin [LIVE](bitsy.now.sh) [SOURCE]("./examples/pastebin")
