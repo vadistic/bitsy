@@ -1,72 +1,52 @@
-import { Logger, Injectable, LogLevel, Inject } from '@nestjs/common';
+import { Logger, Injectable, Inject } from '@nestjs/common';
 import { INQUIRER } from '@nestjs/core';
 
-export const LOG_COLLECTION = 'Logs';
-
-type LoggerCache = Record<LogLevel, string[]>;
-
 @Injectable()
-export class ContextLogger {
+export class LoggerService {
   constructor(
     readonly nest: Logger,
     // https://github.com/nestjs/docs.nestjs.com/issues/937
-    @Inject(INQUIRER) readonly context: string,
+    @Inject(INQUIRER) readonly context: string = 'AppModule',
   ) {}
 
-  log(msg?: string, context?: string) {
+  log(msg?: any, subcontext?: string) {
     if (msg) {
-      this.nest.log(msg, context || this.context);
+      this.nest.log(msg, this.join(subcontext));
     }
   }
 
-  error(msg?: string, context?: string) {
+  error(msg?: any, subcontext?: string) {
     if (msg) {
-      this.nest.error(msg, undefined, context || this.context);
+      this.nest.error(msg, undefined, this.join(subcontext));
     }
   }
 
-  warn(msg?: string, context?: string) {
+  warn(msg?: any, subcontext?: string) {
     if (msg) {
-      this.nest.warn(msg, context || this.context);
+      this.nest.warn(msg, this.join(subcontext));
     }
   }
 
-  debug(msg?: string, context?: string) {
+  debug(msg?: any, subcontext?: string) {
     if (msg) {
-      this.nest.debug(msg, context || this.context);
+      this.nest.debug(msg, this.join(subcontext));
     }
   }
 
-  verbose(msg?: string, context?: string) {
+  verbose(msg?: any, subcontext?: string) {
     if (msg) {
-      this.nest.verbose(msg, context || this.context);
+      this.nest.verbose(msg, this.join(subcontext));
     }
   }
-}
 
-// ────────────────────────────────────────────────────────────────────────────────
-
-@Injectable()
-export class LoggerService extends ContextLogger {
-  readonly cache: LoggerCache = {
-    log: [],
-    error: [],
-    warn: [],
-    debug: [],
-    verbose: [],
-  };
-
-  child(context: string) {
-    return new ContextLogger(this.nest, context);
+  child(subcontext: string) {
+    return new LoggerService(
+      this.nest,
+      this.context.split('/').concat(subcontext).slice(-1).join('/'),
+    );
   }
 
-  dump() {
-    const cp = { ...this.cache };
-
-    Object.keys(this.cache).forEach((key) => {
-      this.cache[key as keyof LoggerCache] = [];
-    });
-
-    return cp;
+  protected join(subcontext?: string) {
+    return [this.context, subcontext].filter(Boolean).join('/');
   }
 }

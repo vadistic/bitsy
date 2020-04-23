@@ -27,9 +27,15 @@ describe('dto serialisation', () => {
     expect(dto).not.toHaveProperty('extra');
   });
 
-  it('applies transforms', () => {
+  it('applies transforms to alias', () => {
     const dto = toClass(PaginationDTO, { sort: 'asc' } as any);
 
     expect(dto.sort).toBe(1);
+  });
+
+  it('applies transforms to number strings', () => {
+    const dto = toClass(PaginationDTO, { sort: '-1' } as any);
+
+    expect(dto.sort).toBe(-1);
   });
 });

@@ -28,8 +28,10 @@ import { CustomValidationPipe } from '../dto/transform';
 export class DataController {
   constructor(
     private readonly service: DataService,
-    private readonly logger: LoggerService,
+    private readonly loggerService: LoggerService,
   ) {}
+
+  private logger = this.loggerService.child(this.constructor.name);
 
   // ────────────────────────────────────────────────────────────────────────────────
 
@@ -37,6 +39,8 @@ export class DataController {
   @ApiOkResponse({ type: BucketDTO })
   @ApiNotFoundResponse({ type: IdentifierDTO })
   async getBucket(@Param() param: IdentifierDTO): Promise<BucketDTO> {
+    this.logger.debug(param, 'Param');
+
     const bucket = await this.service.findOneBucket(param);
 
     if (!bucket) {
@@ -52,6 +56,7 @@ export class DataController {
   @ApiOkResponse({ type: ItemDTO })
   @ApiNotFoundResponse({ type: IdentifierDTO })
   async getLastBucketItem(@Param() param: IdentifierDTO): Promise<ItemDTO> {
+    this.logger.debug(param, 'Param');
     const item = await this.service.findLastItem(param);
 
     if (!item) {
@@ -70,6 +75,9 @@ export class DataController {
     @Param() param: IdentifierDTO,
     @Query() query: PaginationDTO,
   ): Promise<ItemDTO[]> {
+    this.logger.debug(param, 'Param');
+    this.logger.debug(query, 'Query');
+
     const items = await this.service.findManyItems({ ...param, ...query });
 
     if (!items.length) {
@@ -85,18 +93,23 @@ export class DataController {
   @ApiBody({ required: true, description: 'JSON' })
   @ApiOkResponse({ type: ItemDTO })
   async postNew(@Body() body: any): Promise<ItemDTO> {
+    this.logger.debug(body, 'Body');
+
     return this.service.pushToBucket({ value: body });
   }
 
   // ────────────────────────────────────────────────────────────────────────────────
 
   @Post('/buckets/:identifier')
-  @ApiBody({ required: true, description: 'JSON' })
+  @ApiBody({ required: true, description: 'JSON', type: Object })
   @ApiOkResponse({ type: ItemDTO })
   async postPush(
     @Param() param: IdentifierDTO,
     @Body() body: any,
   ): Promise<ItemDTO> {
+    this.logger.debug(param, 'Param');
+    this.logger.debug(body, 'Body');
+
     return this.service.pushToBucket({ ...param, value: body });
   }
 
@@ -109,6 +122,9 @@ export class DataController {
     @Param() param: IdentifierDTO,
     @Body() body: any,
   ): Promise<ItemDTO> {
+    this.logger.debug(param, 'Param');
+    this.logger.debug(body, 'Body');
+
     const deleted = await this.service.deleteBucket(param);
 
     if (deleted.count === 0) {
@@ -124,6 +140,8 @@ export class DataController {
   @ApiOkResponse({ type: CountDTO })
   @ApiNotFoundResponse({ type: IdentifierDTO })
   async deleteBucket(@Param() param: IdentifierDTO): Promise<CountDTO> {
+    this.logger.debug(param, 'Param');
+
     const deleted = await this.service.deleteBucket(param);
 
     if (deleted.count === 0) {

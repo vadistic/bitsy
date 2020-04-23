@@ -25,4 +25,4 @@ Simple endpoint for storing JSONs
 ## Examples
 
 - simple
-- bitsy pastebin [LIVE](bitsy.now.sh) [SOURCE]("./examples/pastebin")
+- bitsy pastebin [LIVE](https://bitsy.now.sh)

@@ -5,15 +5,17 @@ import {
   MaxLength,
   IsNumber,
   Min,
-  IsEnum,
   IsInt,
   Max,
   IsOptional,
+  IsIn,
+  IsNumberString,
 } from 'class-validator';
-import { Expose, Type } from 'class-transformer';
+import { Expose, Type, Transform } from 'class-transformer';
 import { TransformDictionary } from './transform-dictionary.decorator';
 import { IsNotSiblingOf } from './not-sibling-of.decorator';
 import { Default } from './default.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class IdDTO {
   @IsMongoId()
@@ -27,6 +29,9 @@ export class ValueDTO {
 }
 
 export class IdentifierDTO {
+  @ApiProperty({
+    example: 'my-cool-bucket-01',
+  })
   @MinLength(12)
   @MaxLength(36)
   @Expose()
@@ -47,13 +52,24 @@ export enum SortDirection {
 }
 
 export class PaginationDTO {
-  @TransformDictionary({ asc: 1, desc: -1 })
+  @ApiProperty({
+    enum: ['asc', 'desc', -1, 1],
+    default: 'desc',
+    example: 'desc',
+  })
+  @TransformDictionary({ asc: 1, desc: -1, '1': 1, '-1': -1 })
+  @IsIn([-1, 1, 'asc', 'desc'])
   @Default(SortDirection.DESC)
-  @IsEnum(SortDirection)
   @Expose()
   /** sort by mongo id direcction */
   sort!: SortDirection;
 
+  @ApiProperty({
+    default: 10,
+    type: Number,
+    minimum: 0,
+    maximum: 100,
+  })
   @Type(() => Number)
   @Default(10)
   @IsInt()
