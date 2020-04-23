@@ -9,41 +9,24 @@ import {
   Max,
   IsOptional,
   IsIn,
-  IsNumberString,
+  IsEnum,
 } from 'class-validator';
-import { Expose, Type, Transform } from 'class-transformer';
+import { Expose, Type, Exclude, ExposeOptions } from 'class-transformer';
 import { TransformDictionary } from './transform-dictionary.decorator';
 import { IsNotSiblingOf } from './not-sibling-of.decorator';
 import { Default } from './default.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class IdDTO {
-  @IsMongoId()
-  /** internal mongo objectId */
-  _id!: string;
+export enum Groups {
+  MONGO = 'mongo',
+  DEFAULT = 'default',
 }
 
-export class ValueDTO {
-  @IsNotEmptyObject()
-  value: any;
-}
-
-export class IdentifierDTO {
-  @ApiProperty({
-    example: 'my-cool-bucket-01',
-  })
-  @MinLength(12)
-  @MaxLength(36)
-  @Expose()
-  /** unique bucket identifier */
-  identifier!: string;
-}
-
-export class CountDTO {
-  @IsNumber()
-  @Min(1)
-  /** count of stuff */
-  count!: number;
+export enum AccessType {
+  PUBLIC = 'public',
+  READONLY = 'readonly',
+  WRITEONLY = 'writeonly',
+  PRIVATE = 'private',
 }
 
 export enum SortDirection {
@@ -51,6 +34,62 @@ export enum SortDirection {
   DESC = -1,
 }
 
+export const ExposeDefault = (options?: ExposeOptions) =>
+  Expose({ groups: [Groups.DEFAULT, ...(options?.groups || [])] });
+
+// ────────────────────────────────────────────────────────────────────────────────
+
+@Exclude()
+export class IdDTO {
+  @IsMongoId()
+  @ExposeDefault()
+  /** internal mongo objectId */
+  _id!: string;
+}
+
+@Exclude()
+export class ValueDTO {
+  @IsNotEmptyObject()
+  @ExposeDefault()
+  value: any;
+}
+
+@Exclude()
+export class IdentifierDTO {
+  @MinLength(12)
+  @MaxLength(36)
+  @ExposeDefault()
+  /** unique bucket identifier */
+  identifier!: string;
+}
+
+@Exclude()
+export class SlugDTO {
+  @MinLength(8)
+  @MaxLength(36)
+  @ExposeDefault()
+  slug!: string;
+}
+
+@Exclude()
+export class AccessDTO {
+  @IsOptional()
+  @Default(AccessType.PUBLIC)
+  @IsEnum(AccessType)
+  @ExposeDefault()
+  access!: AccessType;
+}
+
+@Exclude()
+export class CountDTO {
+  @IsNumber()
+  @Min(1)
+  @ExposeDefault()
+  /** count of stuff */
+  count!: number;
+}
+
+@Exclude()
 export class PaginationDTO {
   @ApiProperty({
     enum: ['asc', 'desc', -1, 1],
@@ -60,7 +99,7 @@ export class PaginationDTO {
   @TransformDictionary({ asc: 1, desc: -1, '1': 1, '-1': -1 })
   @IsIn([-1, 1, 'asc', 'desc'])
   @Default(SortDirection.DESC)
-  @Expose()
+  @ExposeDefault()
   /** sort by mongo id direcction */
   sort!: SortDirection;
 
@@ -75,18 +114,18 @@ export class PaginationDTO {
   @IsInt()
   @Min(0)
   @Max(100)
-  @Expose()
+  @ExposeDefault()
   limit!: number;
 
   @IsOptional()
   @IsMongoId()
   @IsNotSiblingOf(['before'])
-  @Expose()
+  @ExposeDefault()
   after?: string;
 
   @IsOptional()
   @IsMongoId()
   @IsNotSiblingOf(['after'])
-  @Expose()
+  @ExposeDefault()
   before?: string;
 }

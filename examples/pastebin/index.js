@@ -201,13 +201,7 @@ async function bootstrap() {
 // it's magic copypaste
 // https://github.com/microsoft/monaco-editor-samples
 
-require.config({
-  paths: { vs: 'https://unpkg.com/monaco-editor@latest/min/vs' },
-});
-
-window.MonacoEnvironment = { getWorkerUrl: () => proxy };
-
-let proxy = URL.createObjectURL(
+const proxy = URL.createObjectURL(
   new Blob(
     [
       `
@@ -221,6 +215,12 @@ let proxy = URL.createObjectURL(
   ),
 );
 
+require.config({
+  paths: { vs: 'https://unpkg.com/monaco-editor@latest/min/vs' },
+});
+
+window.MonacoEnvironment = { getWorkerUrl: () => proxy };
+
 // https://microsoft.github.io/monaco-editor/api/
 require(['vs/editor/editor.main'], function () {
   const editor = monaco.editor.create(refs.editor, {
@@ -231,6 +231,12 @@ require(['vs/editor/editor.main'], function () {
   // binding to global window & underscore because it's ugly
   window._monaco = monaco;
   window._editor = editor;
+
+  // random
+  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: true,
+    noSyntaxValidation: true,
+  });
 
   // calling main function
   bootstrap();

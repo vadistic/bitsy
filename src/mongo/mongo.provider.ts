@@ -1,7 +1,7 @@
 import { Provider, Inject, LogLevel } from '@nestjs/common';
 import { MongoClient, log } from 'mongodb';
-import { ConfigT, configuration } from '../config';
 import { LoggerService } from '../logger/logger.service';
+import { ConfigService, Config } from '../config';
 
 export const MONGO_CLIENT = 'MONGO_CLIENT';
 
@@ -9,18 +9,18 @@ export const InjectMongo = () => Inject(MONGO_CLIENT);
 
 export const MongoProvider: Provider = {
   provide: MONGO_CLIENT,
-  useFactory: (config: ConfigT, logger: LoggerService) => {
+  useFactory: (config: ConfigService<Config>, logger: LoggerService) => {
     const mongoLogger: log = (msg, state) => {
       const level = (state?.type ?? 'log') as LogLevel;
       logger[level](state?.message, 'MongoModule');
     };
 
-    return MongoClient.connect(config.MONGODB_URL, {
+    return MongoClient.connect(config.get('MONGODB_URL'), {
       auth: {
-        user: config.MONGODB_USER,
-        password: config.MONGODB_PASS,
+        user: config.get('MONGODB_USER'),
+        password: config.get('MONGODB_PASS'),
       },
-      loggerLevel: config.DEV ? 'debug' : 'error',
+      loggerLevel: config.get('NODE_ENV') === 'development' ? 'debug' : 'error',
       logger: mongoLogger,
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -28,5 +28,5 @@ export const MongoProvider: Provider = {
       ignoreUndefined: true,
     });
   },
-  inject: [configuration.KEY, LoggerService],
+  inject: [ConfigService, LoggerService],
 };

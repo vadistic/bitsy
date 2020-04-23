@@ -1,20 +1,9 @@
-import { InternalServerErrorException } from '@nestjs/common';
+export const omit = <T, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
+  const res: T = { ...obj };
 
-// ────────────────────────────────────────────────────────────────────────────────
+  for (const key of keys) {
+    delete res[key as keyof T];
+  }
 
-export type Defined<T> = {
-  [K in keyof T]: NonNullable<T[K]>;
-};
-
-export const definedOrReject = <T>(obj: T): Defined<T> => {
-  Object.entries(obj).forEach(([key, val]) => {
-    if (val === undefined) {
-      throw new InternalServerErrorException(
-        { [key]: undefined },
-        `key "${key}" is not defined`,
-      );
-    }
-  });
-
-  return obj as Defined<T>;
+  return res;
 };

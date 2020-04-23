@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ItemDTO } from './data.dto';
 import {
   uniqueNamesGenerator,
   adjectives,
@@ -7,14 +6,14 @@ import {
   animals,
 } from 'unique-names-generator';
 import { StrictProjection } from '../types';
-import { ITEMS_COLLECTION } from './data.provider';
-import { MongoService } from '../mongo/mongo.service';
+import { MongoService } from '../mongo';
+import { BucketModel } from './bucket.model';
 
 @Injectable()
-export class IdentifierService {
+export class SlugService {
   constructor(private readonly mongo: MongoService) {}
 
-  items = this.mongo.db.collection<ItemDTO>(ITEMS_COLLECTION);
+  buckets = this.mongo.db.collection<BucketModel>(BucketModel.collection);
 
   generate(): string {
     const separator = '-';
@@ -33,22 +32,22 @@ export class IdentifierService {
   }
 
   async generateUnique(): Promise<string> {
-    const uniqueIdentifier = this.generate();
+    const slug = this.generate();
 
-    const cursor = this.items
+    const cursor = this.buckets
       .find(
         {
-          namespace: uniqueIdentifier,
+          slug,
         },
         { limit: 1 },
       )
-      .project({ identifier: 1 } as StrictProjection<ItemDTO>);
+      .project({ slug: 1 } as StrictProjection<BucketModel>);
 
     // very improbable but...
     if (await cursor.hasNext()) {
       return this.generateUnique();
     }
 
-    return uniqueIdentifier;
+    return slug;
   }
 }

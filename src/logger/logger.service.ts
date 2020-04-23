@@ -4,9 +4,9 @@ import { INQUIRER } from '@nestjs/core';
 @Injectable()
 export class LoggerService {
   constructor(
-    readonly nest: Logger,
     // https://github.com/nestjs/docs.nestjs.com/issues/937
     @Inject(INQUIRER) readonly context: string = 'AppModule',
+    readonly nest: Logger = new Logger(),
   ) {}
 
   log(msg?: any, subcontext?: string) {
@@ -41,8 +41,8 @@ export class LoggerService {
 
   child(subcontext: string) {
     return new LoggerService(
-      this.nest,
       this.context.split('/').concat(subcontext).slice(-1).join('/'),
+      this.nest,
     );
   }
 

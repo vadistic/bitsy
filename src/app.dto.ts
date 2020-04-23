@@ -6,7 +6,7 @@ import {
   IsNotEmpty,
   IsAlpha,
 } from 'class-validator';
-import { toClass } from './dto/transform';
+import { toClass } from './common/transform';
 import { Expose } from 'class-transformer';
 
 export class HelloDTO {

@@ -1,20 +1,17 @@
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import morgan from 'morgan';
 import { LoggerService } from './logger.service';
-import { ConfigT, InjectConfig } from '../config';
 import { Request, Response, NextFunction } from 'express';
+import { Config, ConfigService } from '../config';
 
 @Injectable()
 export class MorganMiddleware implements NestMiddleware {
-  constructor(
-    @InjectConfig() private readonly config: ConfigT,
-    private readonly nestLogger: Logger,
-  ) {}
+  constructor(private readonly config: ConfigService<Config>) {}
 
-  logger = new LoggerService(this.nestLogger, 'Morgan');
+  logger = new LoggerService('Morgan');
 
   use(req: Request, res: Response, next: NextFunction) {
-    if (!this.config.DEV) {
+    if (this.config.get('NODE_ENV') !== 'development') {
       next();
       return;
     }

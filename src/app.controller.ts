@@ -2,7 +2,7 @@ import { Controller, Get, Query, Post, Body, UsePipes } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { MessageDTO, HelloDTO } from './app.dto';
-import { CustomValidationPipe } from './dto/transform';
+import { CustomValidationPipe } from './common/transform';
 
 @Controller('/api')
 @UsePipes(CustomValidationPipe)
