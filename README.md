@@ -1,6 +1,6 @@
 # bitsy-nosql-bucket
 
-Bitsy data store API for backendless prototyping
+Bitsy no-sql data store API for backendless prototyping
 
 > bitsy
 > _in British English_
@@ -12,11 +12,16 @@ Bitsy data store API for backendless prototyping
 
 ## Idea
 
-Simple endpoint for storing JSONs
+Simple endpoint for storing JSONs - something like [backendless](https://backendless.com/)
 
-- create bucket by posting to it (or using `/api/buckets/new`)
-- add more data
-- read items
+- create bucket by posting to it (or using `/api/buckets`)
+- add/read items
+
+## Stack
+
+- @nestejs
+- @nestejs/swagger
+- mongodb
 
 ## Documentation
 
